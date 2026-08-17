@@ -1,0 +1,66 @@
+---
+import { navItems, site, socialLinks } from '../data/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="shell pb-10 pt-10 md:pb-14 md:pt-14">
+  <div data-rule class="h-px w-full origin-left bg-hairline"></div>
+
+  <div class="mt-12 grid gap-12 md:grid-cols-12 md:gap-10">
+    <div class="md:col-span-6">
+      <p class="eyebrow" data-reveal>Get in touch</p>
+      <a
+        href={`mailto:${site.email}`}
+        data-reveal
+        class="mt-5 inline-block font-display text-headline transition-colors duration-200 hover:text-accent"
+      >
+        {site.email}
+      </a>
+    </div>
+
+    <nav aria-label="Footer" class="md:col-span-3">
+      <p class="eyebrow" data-reveal>Pages</p>
+      <ul class="mt-5 space-y-2" data-reveal>
+        {
+          navItems.map((item) => (
+            <li>
+              <a href={item.href} class="text-slate transition-colors duration-200 hover:text-ink">
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="md:col-span-3">
+      <p class="eyebrow" data-reveal>Elsewhere</p>
+      <ul class="mt-5 space-y-2" data-reveal>
+        {
+          socialLinks
+            .filter((link) => link.label !== 'Email')
+            .map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  class="text-slate transition-colors duration-200 hover:text-ink"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))
+        }
+      </ul>
+    </div>
+  </div>
+
+  <div
+    class="mt-16 flex flex-col gap-3 border-t border-hairline pt-6 text-sm text-slate sm:flex-row sm:items-center sm:justify-between"
+  >
+    <p>&copy; {year} {site.name}</p>
+    <p>Built with Astro, Tailwind, and GSAP</p>
+  </div>
+</footer>

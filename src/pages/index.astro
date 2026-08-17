@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/Section.astro';
+import ActionLink from '../components/ActionLink.astro';
+import ProjectCarousel from '../components/ProjectCarousel.tsx';
+import { featuredProjects } from '../data/projects';
+import { site } from '../data/site';
+
+const facts = [
+  { label: 'Based in', value: site.location },
+  { label: 'Focus', value: '[YOUR FOCUS — e.g. product engineering]' },
+  { label: 'Currently', value: '[WHERE YOU WORK OR STUDY]' },
+];
+---
+
+<BaseLayout
+  title="Home"
+  description="[One line about what you do. This is the text search engines and link previews will show.]"
+>
+  <section class="shell flex min-h-svh flex-col justify-center pb-24 pt-32" data-hero-root>
+    <p class="eyebrow flex items-center gap-2.5" data-hero-item>
+      {site.available && <span aria-hidden="true" class="size-1.5 rounded-full bg-accent"></span>}
+      {site.availabilityNote}
+    </p>
+
+    <h1 class="mt-8 text-display">
+      <span data-reveal-mask><span>{site.name}</span></span>
+      <span data-reveal-mask><span class="text-slate">{site.role}</span></span>
+    </h1>
+
+    <div class="mt-14 grid gap-10 md:grid-cols-12 md:gap-10">
+      <div class="md:col-span-6">
+        <p class="max-w-xl text-lead" data-hero-item>
+          [One sentence that says what you make and who it is for. Keep it plain — the work should
+          sound useful before it sounds impressive.]
+        </p>
+
+        <div class="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4" data-hero-item>
+          <ActionLink href="/projects">See the work</ActionLink>
+          <ActionLink href="/contact" variant="ghost">Get in touch</ActionLink>
+        </div>
+      </div>
+
+      <dl class="md:col-span-5 md:col-start-8" data-hero-item>
+        {
+          facts.map((fact) => (
+            <div class="flex justify-between gap-6 border-b border-hairline py-3 last:border-b-0">
+              <dt class="eyebrow">{fact.label}</dt>
+              <dd class="text-right text-sm">{fact.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <Section eyebrow="Selected work" wide>
+    <div data-reveal>
+      <ProjectCarousel client:visible projects={featuredProjects} />
+    </div>
+
+    <div class="mt-12">
+      <ActionLink href="/projects" variant="ghost">All projects</ActionLink>
+    </div>
+  </Section>
+</BaseLayout>

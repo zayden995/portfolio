@@ -1,0 +1,32 @@
+---
+/** A link that reads as an action. `solid` for the primary move, `ghost` beside it. */
+interface Props {
+  href: string;
+  variant?: 'solid' | 'ghost';
+  class?: string;
+}
+
+const { href, variant = 'solid', class: className = '' } = Astro.props;
+
+const variants = {
+  solid: 'bg-ink px-7 py-3.5 text-chalk hover:bg-accent',
+  ghost: 'border-b border-ink pb-1 hover:border-accent hover:text-accent',
+};
+---
+
+<a
+  href={href}
+  class:list={[
+    'group inline-flex items-center gap-3 text-sm transition-colors duration-200',
+    variants[variant],
+    className,
+  ]}
+>
+  <slot />
+  <span
+    aria-hidden="true"
+    class="transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+  >
+    &#8594;
+  </span>
+</a>

@@ -1,0 +1,29 @@
+---
+/**
+ * The masthead every page except Home opens with. Marked as the hero root so
+ * the GSAP intro timeline picks it up on load.
+ */
+interface Props {
+  eyebrow: string;
+  title: string;
+  lead?: string;
+}
+
+const { eyebrow, title, lead } = Astro.props;
+---
+
+<header class="shell pb-16 pt-36 md:pb-24 md:pt-44" data-hero-root>
+  <p class="eyebrow" data-hero-item>{eyebrow}</p>
+
+  <h1 class="mt-6 text-headline">
+    <span data-reveal-mask><span>{title}</span></span>
+  </h1>
+
+  {
+    lead && (
+      <p class="mt-8 max-w-2xl text-lead text-slate" data-hero-item>
+        {lead}
+      </p>
+    )
+  }
+</header>

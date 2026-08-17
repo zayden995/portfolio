@@ -1,0 +1,174 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   Design tokens
+   Everything visual is derived from these. Change a value here and it
+   propagates across the whole site.
+   --------------------------------------------------------------------------- */
+@theme {
+  /* Palette — chalk paper, graphite ink, one electric accent. */
+  --color-chalk: #f5f5f3;
+  --color-chalk-deep: #ebebe7;
+  --color-ink: #16171a;
+  --color-slate: #6b6f76;
+  --color-hairline: #dededa;
+  --color-accent: #2f27e0;
+  --color-accent-soft: #e6e5fb;
+
+  /* Type — Erode throughout: an old-style serif in the Times New Roman mould.
+     Hierarchy comes from size and weight rather than a second family. */
+  --font-display: 'Erode', 'Times New Roman', Times, serif;
+  --font-body: 'Erode', 'Times New Roman', Times, serif;
+
+  /* Fluid type scale. Serifs need looser tracking than a grotesque, so the
+     negative letter-spacing here is gentler than it would be for a sans. */
+  --text-display: clamp(2.75rem, 9vw, 8.5rem);
+  --text-display--line-height: 0.98;
+  --text-display--letter-spacing: -0.02em;
+
+  --text-headline: clamp(2rem, 5vw, 3.75rem);
+  --text-headline--line-height: 1.06;
+  --text-headline--letter-spacing: -0.015em;
+
+  --text-title: clamp(1.375rem, 2.4vw, 1.875rem);
+  --text-title--line-height: 1.2;
+  --text-title--letter-spacing: -0.005em;
+
+  --text-lead: clamp(1.125rem, 1.9vw, 1.5rem);
+  --text-lead--line-height: 1.5;
+
+  --text-meta: 0.75rem;
+  --text-meta--line-height: 1.4;
+  --text-meta--letter-spacing: 0.12em;
+
+  /* Motion */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+   --------------------------------------------------------------------------- */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-chalk);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--color-ink);
+    color: var(--color-chalk);
+  }
+
+  /* One visible, consistent focus ring across the whole site. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Utilities
+   --------------------------------------------------------------------------- */
+@utility eyebrow {
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  letter-spacing: var(--text-meta--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-slate);
+  font-weight: 500;
+}
+
+/* Page gutter, shared by every section so the vertical rhythm stays honest. */
+@utility shell {
+  width: 100%;
+  max-width: 84rem;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+
+  @media (width >= 48rem) {
+    padding-inline: 2.5rem;
+  }
+
+  @media (width >= 80rem) {
+    padding-inline: 4rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Reveal animations
+
+   GSAP sets the final state. The hidden starting state is only applied when
+   JavaScript is running (`.js` is added to <html> by an inline script in the
+   <head>), so content is never trapped invisible if a script fails to load.
+   --------------------------------------------------------------------------- */
+.js [data-reveal],
+.js [data-hero-item] {
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* A clipping window for text that rises into view. The padding/margin pair
+   keeps descenders (g, y, p) from being shaved off by the overflow clip. */
+[data-reveal-mask] {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+[data-reveal-mask] > * {
+  display: block;
+}
+
+.js [data-reveal-mask] > * {
+  transform: translateY(110%);
+}
+
+.js [data-rule] {
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Motion off — but everything must still be visible. */
+  .js [data-reveal],
+  .js [data-hero-item],
+  .js [data-reveal-mask] > *,
+  .js [data-rule] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

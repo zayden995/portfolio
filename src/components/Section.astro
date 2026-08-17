@@ -1,0 +1,48 @@
+---
+/**
+ * The page's structural unit: a hairline rule, a label saying what the block
+ * is, and the content.
+ *
+ * By default the label sits in a left rail beside the content, which suits
+ * prose. Pass `wide` for content that should run the full measure — the
+ * projects index, for one — and the label moves above it instead.
+ */
+interface Props {
+  eyebrow?: string;
+  id?: string;
+  class?: string;
+  wide?: boolean;
+}
+
+const { eyebrow, id, class: className = '', wide = false } = Astro.props;
+---
+
+<section id={id} class:list={['shell py-20 md:py-28', className]}>
+  <div data-rule class="h-px w-full origin-left bg-hairline"></div>
+
+  {
+    wide ? (
+      <div class="mt-10 md:mt-14">
+        {eyebrow && (
+          <p class="eyebrow mb-10" data-reveal>
+            {eyebrow}
+          </p>
+        )}
+        <slot />
+      </div>
+    ) : (
+      <div class="mt-10 grid gap-x-10 gap-y-8 md:mt-14 md:grid-cols-12">
+        {eyebrow && (
+          <div class="md:col-span-3">
+            <p class="eyebrow" data-reveal>
+              {eyebrow}
+            </p>
+          </div>
+        )}
+        <div class:list={[eyebrow ? 'md:col-span-9' : 'md:col-span-12']}>
+          <slot />
+        </div>
+      </div>
+    )
+  }
+</section>

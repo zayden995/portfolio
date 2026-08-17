@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import ContactForm from '../components/ContactForm.tsx';
+import { site, socialLinks } from '../data/site';
+---
+
+<BaseLayout
+  title="Contact"
+  description="[How to reach you, and what kind of enquiries you welcome.]"
+>
+  <PageHeader
+    eyebrow="Contact"
+    title="[Let’s talk]"
+    lead="[Say what you would like to hear about — new projects, roles, collaborations — and roughly how quickly you reply.]"
+  />
+
+  <Section eyebrow="Send a message">
+    <div class="grid gap-16 md:grid-cols-9 md:gap-10">
+      <div class="md:col-span-5" data-reveal>
+        <ContactForm client:visible />
+      </div>
+
+      <div class="md:col-span-4" data-reveal>
+        <h2 class="text-title">Or reach me directly</h2>
+
+        <ul class="mt-8 border-t border-hairline">
+          {
+            socialLinks.map((link) => (
+              <li class="border-b border-hairline">
+                <a
+                  href={link.href}
+                  rel="noopener noreferrer"
+                  target={link.href.startsWith('mailto:') ? undefined : '_blank'}
+                  class="group flex items-center justify-between gap-4 py-4"
+                >
+                  <span class="text-sm">{link.label}</span>
+                  <span class="flex items-center gap-3 text-sm text-slate transition-colors duration-200 group-hover:text-accent">
+                    {link.handle}
+                    <span
+                      aria-hidden="true"
+                      class="transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+                    >
+                      &#8599;
+                    </span>
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+
+        <p class="mt-8 text-sm text-slate">
+          Based in {site.location}. [Add your timezone and usual reply time here.]
+        </p>
+      </div>
+    </div>
+  </Section>
+</BaseLayout>

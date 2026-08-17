@@ -1,0 +1,71 @@
+---
+import '../styles/global.css';
+import Nav from '../components/Nav.tsx';
+import Footer from '../components/Footer.astro';
+import { site } from '../data/site';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const pathname = Astro.url.pathname;
+const canonical = new URL(pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonical} />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title} — {site.shortName}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={`${title} — ${site.shortName}`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
+    {/* One family, one request. Fontshare silently drops families from
+        multi-family URLs, so keep separate <link>s if you ever add another. */}
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=erode@300,400,500,600,700&amp;display=swap"
+    />
+
+    {/* Marks that scripting is on, so animated elements may start hidden. */}
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+  </head>
+
+  <body class="min-h-screen antialiased">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[60] focus:rounded focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-chalk"
+    >
+      Skip to content
+    </a>
+
+    <Nav client:load pathname={pathname} name={site.name} />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <script>
+      import { initAnimations } from '../lib/animations';
+
+      initAnimations();
+    </script>
+  </body>
+</html>
