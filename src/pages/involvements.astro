@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import ActionLink from '../components/ActionLink.astro';
+import InvolvementGroup from '../components/InvolvementGroup.astro';
+import { involvementGroups } from '../data/involvements';
+---
+
+<BaseLayout
+  title="Involvements"
+  description="The student groups and community work Zayden Chua gives his time to, and what he actually does in them."
+>
+  <PageHeader
+    eyebrow="Involvements"
+    title="What I show up for"
+    lead="The groups I give my time to, and what I actually do in them. Most of it comes down to the same thing: getting people in the room, and making sure the day runs."
+  />
+
+  {
+    involvementGroups.map((group, index) => (
+      <InvolvementGroup group={group} index={index} total={involvementGroups.length} />
+    ))
+  }
+
+  <section class="shell py-20 md:py-28">
+    <div data-rule class="h-px w-full origin-left bg-hairline"></div>
+    <div class="mt-12 flex flex-wrap gap-x-8 gap-y-4" data-reveal>
+      <ActionLink href="/contact">Get in touch</ActionLink>
+      <ActionLink href="/about" variant="ghost">More about me</ActionLink>
+    </div>
+  </section>
+</BaseLayout>

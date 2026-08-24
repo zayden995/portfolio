@@ -8,24 +8,24 @@ const year = new Date().getFullYear();
   <div data-rule class="h-px w-full origin-left bg-hairline"></div>
 
   <div class="mt-12 grid gap-12 md:grid-cols-12 md:gap-10">
-    <div class="md:col-span-6">
+    <div class="md:col-span-5">
       <p class="eyebrow" data-reveal>Get in touch</p>
       <a
         href={`mailto:${site.email}`}
         data-reveal
-        class="mt-5 inline-block font-display text-headline transition-colors duration-200 hover:text-accent"
+        class="mt-5 inline-block font-display text-title transition-colors duration-200 hover:text-accent"
       >
         {site.email}
       </a>
     </div>
 
-    <nav aria-label="Footer" class="md:col-span-3">
+    <nav aria-label="Footer" class="md:col-span-3 md:col-start-7">
       <p class="eyebrow" data-reveal>Pages</p>
       <ul class="mt-5 space-y-2" data-reveal>
         {
           navItems.map((item) => (
             <li>
-              <a href={item.href} class="text-slate transition-colors duration-200 hover:text-ink">
+              <a href={item.href} class="text-slate transition-colors duration-200 hover:text-chalk">
                 {item.label}
               </a>
             </li>
@@ -34,7 +34,7 @@ const year = new Date().getFullYear();
       </ul>
     </nav>
 
-    <div class="md:col-span-3">
+    <div class="md:col-span-3 md:col-start-10">
       <p class="eyebrow" data-reveal>Elsewhere</p>
       <ul class="mt-5 space-y-2" data-reveal>
         {
@@ -46,7 +46,7 @@ const year = new Date().getFullYear();
                   href={link.href}
                   rel="noopener noreferrer"
                   target="_blank"
-                  class="text-slate transition-colors duration-200 hover:text-ink"
+                  class="text-slate transition-colors duration-200 hover:text-chalk"
                 >
                   {link.label}
                 </a>

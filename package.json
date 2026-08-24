@@ -14,6 +14,7 @@
     "@astrojs/react": "^6.0.2",
     "@react-spring/web": "^10.1.2",
     "@tailwindcss/vite": "^4.3.3",
+    "animejs": "^4.5.0",
     "astro": "^7.2.2",
     "gsap": "^3.15.0",
     "react": "^19.2.8",

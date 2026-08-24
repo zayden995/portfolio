@@ -91,7 +91,7 @@ export default function Nav({ pathname, name }: NavProps) {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
         scrolled || menuOpen
-          ? 'border-b border-hairline bg-chalk/80 backdrop-blur-md'
+          ? 'border-b border-hairline bg-ground/80 backdrop-blur-md'
           : 'border-b border-transparent'
       }`}
     >
@@ -121,7 +121,7 @@ export default function Nav({ pathname, name }: NavProps) {
                 onFocus={() => setHovered(index)}
                 onBlur={() => setHovered(null)}
                 className={`block py-1 text-sm transition-colors duration-200 ${
-                  index === activeIndex ? 'text-ink' : 'text-slate hover:text-ink'
+                  index === activeIndex ? 'text-chalk' : 'text-slate hover:text-chalk'
                 }`}
               >
                 {item.label}
@@ -155,7 +155,7 @@ export default function Nav({ pathname, name }: NavProps) {
       <div
         id="mobile-menu"
         hidden={!menuOpen}
-        className="border-t border-hairline bg-chalk md:hidden"
+        className="border-t border-hairline bg-ground md:hidden"
       >
         <ul className="shell flex flex-col py-2">
           {navItems.map((item, index) => (
@@ -165,7 +165,7 @@ export default function Nav({ pathname, name }: NavProps) {
                 aria-current={index === activeIndex ? 'page' : undefined}
                 onClick={() => setMenuOpen(false)}
                 className={`flex items-center justify-between border-b border-hairline py-4 text-title last:border-b-0 ${
-                  index === activeIndex ? 'text-ink' : 'text-slate'
+                  index === activeIndex ? 'text-chalk' : 'text-slate'
                 }`}
               >
                 {item.label}

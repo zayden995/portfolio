@@ -197,7 +197,7 @@ export default function ProjectCarousel({ projects }: ProjectCarouselProps) {
                     setIndex(i);
                   }
                 }}
-                className={`block border border-hairline bg-chalk-deep transition-shadow duration-300 ${
+                className={`block border border-hairline bg-panel transition-shadow duration-300 ${
                   isActive
                     ? 'shadow-[0_24px_60px_-24px_rgba(22,23,26,0.45)]'
                     : 'shadow-[0_8px_24px_-16px_rgba(22,23,26,0.35)]'
@@ -209,10 +209,10 @@ export default function ProjectCarousel({ projects }: ProjectCarouselProps) {
                   draggable={false}
                   loading={i < 2 ? 'eager' : 'lazy'}
                   decoding="async"
-                  className="aspect-[4/3] w-full bg-chalk-deep object-cover"
+                  className="aspect-[4/3] w-full bg-panel object-cover"
                 />
 
-                <div className="bg-chalk px-5 py-5">
+                <div className="bg-ground px-5 py-5">
                   <h3 className="text-title">{project.title}</h3>
                   <p className="mt-2 line-clamp-2 text-sm text-slate">{project.summary}</p>
                   <div className="mt-4 flex items-baseline justify-between gap-4">
@@ -237,7 +237,7 @@ export default function ProjectCarousel({ projects }: ProjectCarouselProps) {
             type="button"
             onClick={() => go(-1)}
             aria-label="Previous project"
-            className="flex size-11 items-center justify-center border border-hairline transition-colors duration-200 hover:border-ink"
+            className="flex size-11 items-center justify-center border border-hairline transition-colors duration-200 hover:border-chalk"
           >
             <span aria-hidden="true">&#8592;</span>
           </button>
@@ -245,7 +245,7 @@ export default function ProjectCarousel({ projects }: ProjectCarouselProps) {
             type="button"
             onClick={() => go(1)}
             aria-label="Next project"
-            className="flex size-11 items-center justify-center border border-hairline transition-colors duration-200 hover:border-ink"
+            className="flex size-11 items-center justify-center border border-hairline transition-colors duration-200 hover:border-chalk"
           >
             <span aria-hidden="true">&#8594;</span>
           </button>

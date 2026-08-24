@@ -2,41 +2,38 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Section from '../components/Section.astro';
 import ActionLink from '../components/ActionLink.astro';
-import ProjectCarousel from '../components/ProjectCarousel.tsx';
-import { featuredProjects } from '../data/projects';
+import { currentRoles } from '../data/involvements';
 import { site } from '../data/site';
 
 const facts = [
+  { label: 'Studying', value: site.course },
+  { label: 'Specialising in', value: site.specialisation },
+  { label: 'Year', value: site.yearOfStudy },
   { label: 'Based in', value: site.location },
-  { label: 'Focus', value: '[YOUR FOCUS — e.g. product engineering]' },
-  { label: 'Currently', value: '[WHERE YOU WORK OR STUDY]' },
 ];
 ---
 
 <BaseLayout
   title="Home"
-  description="[One line about what you do. This is the text search engines and link previews will show.]"
+  description="Zayden Chua — an IT student at Singapore Polytechnic who plans events and runs publicity for two School of Computing student groups."
 >
   <section class="shell flex min-h-svh flex-col justify-center pb-24 pt-32" data-hero-root>
-    <p class="eyebrow flex items-center gap-2.5" data-hero-item>
-      {site.available && <span aria-hidden="true" class="size-1.5 rounded-full bg-accent"></span>}
-      {site.availabilityNote}
-    </p>
-
-    <h1 class="mt-8 text-display">
-      <span data-reveal-mask><span>{site.name}</span></span>
-      <span data-reveal-mask><span class="text-slate">{site.role}</span></span>
+    <h1 class="text-display">
+      {site.statement.map((line) => <span data-reveal-mask><span>{line}</span></span>)}
     </h1>
 
-    <div class="mt-14 grid gap-10 md:grid-cols-12 md:gap-10">
+    <div class="mt-14 grid gap-10 md:grid-cols-12">
       <div class="md:col-span-6">
-        <p class="max-w-xl text-lead" data-hero-item>
-          [One sentence that says what you make and who it is for. Keep it plain — the work should
-          sound useful before it sounds impressive.]
+        <p class="text-lead" data-hero-item>{site.name}</p>
+
+        <p class="mt-4 max-w-xl text-lead text-slate" data-hero-item>
+          I am a second-year IT student at Singapore Polytechnic, specialising in applied AI and
+          data analytics. Outside class I run events and publicity for two of my school's student
+          groups — orientation camps, workshops, socials, and the campaigns that fill them.
         </p>
 
         <div class="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4" data-hero-item>
-          <ActionLink href="/projects">See the work</ActionLink>
+          <ActionLink href="/involvements">See what I do</ActionLink>
           <ActionLink href="/contact" variant="ghost">Get in touch</ActionLink>
         </div>
       </div>
@@ -54,13 +51,24 @@ const facts = [
     </div>
   </section>
 
-  <Section eyebrow="Selected work" wide>
-    <div data-reveal>
-      <ProjectCarousel client:visible projects={featuredProjects} />
-    </div>
+  <Section eyebrow="Where I put my time">
+    <ul class="border-t border-hairline">
+      {
+        currentRoles.map((item) => (
+          <li
+            data-reveal
+            class="grid grid-cols-12 items-baseline gap-x-6 gap-y-1 border-b border-hairline py-6"
+          >
+            <p class="col-span-12 text-title md:col-span-5">{item.organisation}{item.abbreviation && <span class="text-slate"> ({item.abbreviation})</span>}</p>
+            <p class="col-span-8 text-slate md:col-span-4">{item.role}</p>
+            <p class="eyebrow col-span-4 md:col-span-3 md:text-right">{item.period}</p>
+          </li>
+        ))
+      }
+    </ul>
 
     <div class="mt-12">
-      <ActionLink href="/projects" variant="ghost">All projects</ActionLink>
+      <ActionLink href="/involvements" variant="ghost">All involvements</ActionLink>
     </div>
   </Section>
 </BaseLayout>

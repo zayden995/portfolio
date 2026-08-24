@@ -6,19 +6,25 @@
    propagates across the whole site.
    --------------------------------------------------------------------------- */
 @theme {
-  /* Palette — chalk paper, graphite ink, one electric accent. */
-  --color-chalk: #f5f5f3;
-  --color-chalk-deep: #ebebe7;
-  --color-ink: #16171a;
-  --color-slate: #6b6f76;
-  --color-hairline: #dededa;
-  --color-accent: #2f27e0;
-  --color-accent-soft: #e6e5fb;
+  /* Palette — a deep blue ground that lifts toward the top of the viewport,
+     cool off-white type, and a bright cyan accent. Each involvement chapter
+     carries its own tint, set on the section. */
+  --color-ground: #070d1a;
+  --color-panel: #101b33;
+  --color-chalk: #e9edf5;
+  --color-slate: #8d9bb5;
+  --color-hairline: #22304d;
+  --color-accent: #5fd0ff;
 
-  /* Type — Erode throughout: an old-style serif in the Times New Roman mould.
-     Hierarchy comes from size and weight rather than a second family. */
+  --color-tint-school: #16294f;
+  --color-tint-community: #123a4a;
+
+  /* Type — Erode, an old-style serif in the Times New Roman mould, for
+     anything you read. Switzer handles captions, counters and labels; that
+     serif/grotesque split is what gives the page its technical edge. */
   --font-display: 'Erode', 'Times New Roman', Times, serif;
   --font-body: 'Erode', 'Times New Roman', Times, serif;
+  --font-utility: 'Switzer', ui-sans-serif, system-ui, sans-serif;
 
   /* Fluid type scale. Serifs need looser tracking than a grotesque, so the
      negative letter-spacing here is gentler than it would be for a sans. */
@@ -29,6 +35,12 @@
   --text-headline: clamp(2rem, 5vw, 3.75rem);
   --text-headline--line-height: 1.06;
   --text-headline--letter-spacing: -0.015em;
+
+  /* Sits between headline and title — for long names that would otherwise
+     fill a whole column on one line. */
+  --text-subhead: clamp(1.75rem, 3.2vw, 2.5rem);
+  --text-subhead--line-height: 1.1;
+  --text-subhead--letter-spacing: -0.012em;
 
   --text-title: clamp(1.375rem, 2.4vw, 1.875rem);
   --text-title--line-height: 1.2;
@@ -55,16 +67,34 @@
   }
 
   body {
-    background-color: var(--color-chalk);
-    color: var(--color-ink);
+    background-color: var(--color-ground);
+    color: var(--color-chalk);
+    position: relative;
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* The gradient sits on a fixed layer rather than on the body background:
+     background-attachment: fixed is unreliable on iOS, and this keeps the wash
+     steady while the page scrolls over it. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(
+      125% 85% at 50% 0%,
+      #1c3a6b 0%,
+      #0e1e3d 40%,
+      var(--color-ground) 100%
+    );
+  }
+
   ::selection {
-    background-color: var(--color-ink);
-    color: var(--color-chalk);
+    background-color: var(--color-chalk);
+    color: var(--color-ground);
   }
 
   /* One visible, consistent focus ring across the whole site. */
@@ -91,6 +121,7 @@
    Utilities
    --------------------------------------------------------------------------- */
 @utility eyebrow {
+  font-family: var(--font-utility);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   letter-spacing: var(--text-meta--letter-spacing);
@@ -150,6 +181,12 @@
   transform-origin: left center;
 }
 
+/* anime.js splits these into lines at runtime. Held back until it has, so the
+   text never flashes in unsplit and then jump. */
+.js [data-split-lines] {
+  visibility: hidden;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -162,6 +199,11 @@
   .js [data-rule] {
     opacity: 1 !important;
     transform: none !important;
+  }
+
+  /* No splitter runs, so this text must show as ordinary markup. */
+  .js [data-split-lines] {
+    visibility: visible !important;
   }
 
   *,

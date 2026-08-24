@@ -13,7 +13,7 @@ const FORM_ENDPOINT = '';
 type Status = 'idle' | 'sending' | 'sent' | 'error' | 'not-connected';
 
 const FIELD_CLASSES =
-  'w-full border-b border-hairline bg-transparent py-3 text-ink placeholder:text-slate/60 transition-colors duration-200 focus:border-accent focus:outline-none';
+  'w-full border-b border-hairline bg-transparent py-3 text-chalk placeholder:text-slate/60 transition-colors duration-200 focus:border-accent focus:outline-none';
 
 export default function ContactForm() {
   const [status, setStatus] = useState<Status>('idle');
@@ -107,7 +107,7 @@ export default function ContactForm() {
         <button
           type="submit"
           disabled={status === 'sending'}
-          className="group inline-flex items-center gap-3 bg-ink px-7 py-3.5 text-sm text-chalk transition-colors duration-200 hover:bg-accent disabled:opacity-60"
+          className="group inline-flex items-center gap-3 bg-chalk px-7 py-3.5 text-sm text-ground transition-colors duration-200 hover:bg-accent disabled:opacity-60"
         >
           Send message
           <span

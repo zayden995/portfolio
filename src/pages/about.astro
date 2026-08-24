@@ -3,57 +3,58 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHeader from '../components/PageHeader.astro';
 import Section from '../components/Section.astro';
 import ActionLink from '../components/ActionLink.astro';
-import { skillGroups, timeline } from '../data/about';
+import { education, skillGroups } from '../data/about';
 ---
 
 <BaseLayout
   title="About"
-  description="[A sentence about your background and the kind of work you take on.]"
+  description="Zayden Chua — second-year IT student at Singapore Polytechnic, specialising in applied AI and data analytics."
 >
   <PageHeader
     eyebrow="About"
-    title="[A short line about how you work]"
-    lead="[Two lines of context. Who you are, what you have been doing lately, and what you are looking for next.]"
+    title="Studying IT, running events"
+    lead="Second year at Singapore Polytechnic, specialising in applied AI and data analytics. Outside class I plan events and lead publicity for two School of Computing student groups."
   />
 
   <Section eyebrow="Background">
     <div class="grid gap-12 md:grid-cols-9 md:gap-10">
       <div class="space-y-6 text-lead md:col-span-5">
         <p>
-          [Open with how you got here. One or two sentences — the honest version, not the résumé
-          version.]
+          I started at Singapore Polytechnic in April 2025, reading Information Technology with a
+          specialisation in applied AI and data analytics. I graduate in 2028.
         </p>
         <p class="text-slate">
-          [What you care about in the work. Maybe the kind of problem you like, or the thing you
-          keep coming back to.]
+          Most of what I know about working with people I picked up outside the classroom — running
+          events for the School of Computing Club and leading publicity for the School of Computing
+          Ambassadors. [Add a line on why you keep doing it.]
         </p>
         <p class="text-slate">
-          [Close with what you are looking for now, or what you do when you are not working.]
+          [Close with what you are working towards, or what you do when you are not studying.]
         </p>
       </div>
 
       <figure class="md:col-span-4" data-reveal>
         <img
-          src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&amp;fit=crop&amp;w=900&amp;q=80"
-          alt="[Replace with a photo of yourself — describe it here for screen readers]"
-          width="900"
-          height="1125"
+          src="/photos/portrait.jpg"
+          alt="Zayden Chua sitting on grass in a white polo shirt, holding a frangipani flower"
+          width="854"
+          height="1280"
           loading="lazy"
           decoding="async"
-          class="aspect-[4/5] w-full bg-chalk-deep object-cover"
+          class="aspect-[4/5] w-full bg-panel object-cover"
         />
-        <figcaption class="eyebrow mt-4">[Placeholder portrait — swap for your own]</figcaption>
       </figure>
     </div>
   </Section>
 
-  <Section eyebrow="Skills">
-    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+  <Section eyebrow="What I bring">
+    <div class="grid gap-12 sm:grid-cols-2">
       {
         skillGroups.map((group) => (
           <div data-reveal>
             <h2 class="text-title">{group.title}</h2>
-            <ul class="mt-5 space-y-2.5">
+            <p class="mt-2 text-sm text-slate">{group.note}</p>
+            <ul class="mt-6 space-y-2.5">
               {group.items.map((item) => (
                 <li class="border-b border-hairline pb-2.5 text-slate">{item}</li>
               ))}
@@ -64,28 +65,42 @@ import { skillGroups, timeline } from '../data/about';
     </div>
   </Section>
 
-  <Section eyebrow="Experience">
+  <Section eyebrow="Education">
     <ol class="border-t border-hairline">
       {
-        timeline.map((entry) => (
+        education.map((entry) => (
           <li
             data-reveal
             class="grid grid-cols-12 items-baseline gap-x-6 gap-y-2 border-b border-hairline py-7"
           >
             <p class="eyebrow col-span-12 md:col-span-3">{entry.period}</p>
             <div class="col-span-12 md:col-span-6">
-              <h2 class="text-title">{entry.role}</h2>
+              <h2 class="text-title">{entry.qualification}</h2>
               <p class="mt-1.5 text-slate">{entry.note}</p>
+              {entry.roles && (
+                <ul class="mt-4 space-y-2">
+                  {entry.roles.map((role) => (
+                    <li class="flex gap-3 text-sm text-slate">
+                      <span aria-hidden="true" class="mt-px shrink-0 text-accent">
+                        &#8212;
+                      </span>
+                      <span>{role}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <p class="col-span-12 text-sm text-slate md:col-span-3 md:text-right">{entry.org}</p>
+            <p class="col-span-12 text-sm text-slate md:col-span-3 md:text-right">
+              {entry.institution}
+            </p>
           </li>
         ))
       }
     </ol>
 
     <div class="mt-12 flex flex-wrap gap-x-8 gap-y-4">
-      <ActionLink href="/projects">See the work</ActionLink>
-      <ActionLink href="/contact" variant="ghost">Work with me</ActionLink>
+      <ActionLink href="/involvements">See what I do</ActionLink>
+      <ActionLink href="/contact" variant="ghost">Get in touch</ActionLink>
     </div>
   </Section>
 </BaseLayout>

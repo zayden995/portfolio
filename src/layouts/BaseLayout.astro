@@ -33,11 +33,15 @@ const canonical = new URL(pathname, Astro.site);
 
     <link rel="preconnect" href="https://api.fontshare.com" />
     <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
-    {/* One family, one request. Fontshare silently drops families from
-        multi-family URLs, so keep separate <link>s if you ever add another. */}
+    {/* One link per family — Fontshare silently drops families from
+        multi-family URLs, returning CSS for some and omitting the rest. */}
     <link
       rel="stylesheet"
       href="https://api.fontshare.com/v2/css?f[]=erode@300,400,500,600,700&amp;display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600&amp;display=swap"
     />
 
     {/* Marks that scripting is on, so animated elements may start hidden. */}
@@ -49,7 +53,7 @@ const canonical = new URL(pathname, Astro.site);
   <body class="min-h-screen antialiased">
     <a
       href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[60] focus:rounded focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-chalk"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[60] focus:rounded focus:bg-chalk focus:px-4 focus:py-2 focus:text-sm focus:text-ground"
     >
       Skip to content
     </a>

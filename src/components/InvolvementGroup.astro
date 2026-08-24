@@ -1,0 +1,343 @@
+---
+import type { InvolvementGroup } from '../data/involvements';
+
+/**
+ * One involvement group: a vertical intro with its organisations and roles,
+ * then a wall of event photographs that travels sideways as you scroll.
+ *
+ * The wall is pinned and driven by `slideTracks` in `src/lib/animations.ts`.
+ * On narrow screens, with reduced motion, or without JavaScript it unrolls into
+ * an ordinary vertical column — that fallback lives in the CSS below rather
+ * than the markup, so content is never trapped inside an overflow it cannot
+ * scroll.
+ */
+interface Props {
+  group: InvolvementGroup;
+  index: number;
+  total: number;
+}
+
+const { group, index, total } = Astro.props;
+
+/**
+ * Plate shapes cycle through this table. Varying height, crop and vertical
+ * offset is what stops the wall reading as a row of identical cards — and it
+ * is what real photographs would do anyway.
+ */
+const SHAPES = [
+  { h: '52vh', ar: '3 / 4', dy: '-2vh', depth: '-0.10' },
+  { h: '30vh', ar: '1 / 1', dy: '7vh', depth: '0.12' },
+  { h: '44vh', ar: '4 / 3', dy: '-6vh', depth: '0.06' },
+  { h: '34vh', ar: '16 / 9', dy: '8vh', depth: '-0.14' },
+  { h: '50vh', ar: '3 / 4', dy: '0vh', depth: '-0.08' },
+  { h: '40vh', ar: '1 / 1', dy: '5vh', depth: '0.10' },
+  { h: '36vh', ar: '4 / 3', dy: '-8vh', depth: '0.07' },
+];
+
+/** The pull quote takes a slot in the row, after the third plate. */
+const QUOTE_AFTER = 3;
+const counter = `${String(index + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
+---
+
+<section class="group" data-tint={group.tint}>
+  <div class="shell pt-20 md:pt-28">
+    <div data-rule class="h-px w-full origin-left bg-hairline"></div>
+
+    <div class="mt-10 grid gap-x-10 gap-y-8 md:mt-14 md:grid-cols-12">
+      <div class="md:col-span-3">
+        <p class="eyebrow text-accent" data-reveal>Chapter {String(index + 1).padStart(2, '0')}</p>
+        <p class="eyebrow mt-2" data-reveal>{group.period}</p>
+        <p class="eyebrow mt-2" data-reveal>{group.kind}</p>
+      </div>
+
+      <div class="md:col-span-9">
+        <h2 class="text-subhead" data-split-lines>{group.title}</h2>
+        <p class="mt-5 max-w-prose text-lead text-slate" data-split-lines>{group.summary}</p>
+
+        <div class="mt-12 grid gap-10 lg:grid-cols-2">
+          {
+            group.organisations.map((org) => (
+              <div data-reveal>
+                <h3 class="text-title">
+                  {org.name}
+                  {org.abbreviation && <span class="text-slate"> ({org.abbreviation})</span>}
+                </h3>
+
+                <ol class="mt-6 space-y-6">
+                  {org.roles.map((role) => (
+                    <li class="border-t border-hairline pt-4">
+                      <div class="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1">
+                        <p class="text-base">{role.title}</p>
+                        <p class="eyebrow shrink-0">{role.period}</p>
+                      </div>
+                      <ul class="mt-3 space-y-2">
+                        {role.highlights.map((highlight) => (
+                          <li class="flex max-w-prose gap-3 text-sm text-slate">
+                            <span aria-hidden="true" class="mt-px shrink-0 text-accent">
+                              &#8212;
+                            </span>
+                            <span>{highlight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ))
+          }
+        </div>
+
+      </div>
+    </div>
+
+    <p class="eyebrow mt-14" data-reveal>Scroll to move sideways</p>
+  </div>
+
+  <div data-track class="wall">
+    <div data-track-inner class="wall-track">
+      {
+        group.events.map((item, i) => {
+          const shape = SHAPES[i % SHAPES.length]!;
+          return (
+            <>
+              {i === QUOTE_AFTER && (
+                <div class="wall-say" data-depth="0.03">
+                  <p class="wall-say-text">{group.pullQuote}</p>
+                  <p class="eyebrow mt-4">{group.title}</p>
+                </div>
+              )}
+              <figure
+                class="plate"
+                data-depth={shape.depth}
+                style={`--dy:${shape.dy}`}
+              >
+                <figcaption class="plate-caption">
+                  {item.title} &middot; {item.period}
+                </figcaption>
+                <div class="shot" style={`--h:${shape.h};--ar:${shape.ar}`}>
+                  <img src={item.image} alt={item.imageAlt} loading="lazy" decoding="async" />
+                  <span class="stamp">{item.org}</span>
+                </div>
+                <p class="plate-note">{item.description}</p>
+              </figure>
+            </>
+          );
+        })
+      }
+    </div>
+
+    <div class="wall-foot">
+      <span class="wall-count">{counter}</span>
+      <div class="wall-progress"><span data-track-progress-fill></span></div>
+      <span class="wall-count">{group.title}</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .group[data-tint='school'] {
+    --chapter-tint: var(--color-tint-school);
+  }
+  .group[data-tint='community'] {
+    --chapter-tint: var(--color-tint-community);
+  }
+
+  /* Default, and the fallback for narrow screens, reduced motion and no JS:
+     a plain vertical column. */
+  .wall {
+    position: relative;
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    background: var(--chapter-tint);
+    padding-block: clamp(3rem, 8vw, 5rem);
+  }
+
+  .wall-track {
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+    width: 100%;
+    max-width: 84rem;
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+
+  .plate {
+    margin: 0;
+    max-width: 34rem;
+  }
+
+  .plate-caption {
+    font-family: var(--font-utility);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-chalk) 55%, transparent);
+    margin-bottom: 0.7rem;
+  }
+
+  .shot {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background: var(--color-panel);
+    border: 1px solid color-mix(in srgb, var(--color-chalk) 8%, transparent);
+  }
+
+  .shot img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    aspect-ratio: var(--ar, 4 / 3);
+  }
+
+  /* One wash per chapter, so a set of unrelated photographs reads as one
+     colour world rather than a pile of snapshots. */
+  .shot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--chapter-tint);
+    mix-blend-mode: color;
+    opacity: 0.42;
+    pointer-events: none;
+  }
+
+  .stamp {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: 2;
+    padding: 0.5rem 0.65rem;
+    font-family: var(--font-utility);
+    font-size: 0.5625rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.72);
+    background: linear-gradient(transparent, rgb(0 0 0 / 0.6));
+  }
+
+  .plate-note {
+    margin: 0.9rem 0 0;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--color-chalk) 60%, transparent);
+    max-width: 34ch;
+  }
+
+  .wall-say {
+    max-width: 34rem;
+  }
+  .wall-say-text {
+    margin: 0;
+    font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+    font-weight: 300;
+    line-height: 1.26;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .wall-foot {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 84rem;
+    margin: 2.5rem auto 0;
+    padding-inline: 1.5rem;
+  }
+  .wall-progress {
+    flex: 1;
+    height: 1px;
+    background: color-mix(in srgb, var(--color-chalk) 18%, transparent);
+  }
+  .wall-progress span {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: var(--color-accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+  .wall-count {
+    font-family: var(--font-utility);
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-chalk) 65%, transparent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (width >= 48rem) {
+    .wall-track,
+    .wall-foot {
+      padding-inline: 2.5rem;
+    }
+  }
+
+  /* The sideways treatment is opt-in: it needs JavaScript to drive it, and it
+     must never apply when the visitor has asked for less motion. */
+  @media (width >= 48rem) and (prefers-reduced-motion: no-preference) {
+    :global(html.js) .wall {
+      height: 100svh;
+      overflow: hidden;
+      padding-block: 0;
+      margin-top: 0;
+    }
+
+    :global(html.js) .wall-track {
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: nowrap;
+      width: max-content;
+      max-width: none;
+      height: 100svh;
+      gap: clamp(0.75rem, 1.4vw, 1.5rem);
+      margin-inline: 0;
+      padding-inline: 4vw;
+      will-change: transform;
+    }
+
+    :global(html.js) .plate,
+    :global(html.js) .wall-say {
+      flex: none;
+      max-width: none;
+      transform: translate3d(0, calc(var(--dy, 0px) + var(--py, 0px)), 0);
+    }
+
+    :global(html.js) .plate-caption {
+      white-space: nowrap;
+    }
+
+    /* Height drives the size here, so plates of different crops pack tightly. */
+    :global(html.js) .shot {
+      width: auto;
+      height: var(--h);
+    }
+    :global(html.js) .shot img {
+      height: 100%;
+      width: auto;
+    }
+
+    :global(html.js) .plate-note {
+      display: none;
+    }
+
+    :global(html.js) .wall-say {
+      width: clamp(18rem, 32vh, 28rem);
+      padding-inline: clamp(1rem, 2vw, 2rem);
+    }
+
+    :global(html.js) .wall-foot {
+      position: absolute;
+      inset-inline: 4vw;
+      bottom: clamp(1.25rem, 3vw, 2.25rem);
+      margin: 0;
+      padding-inline: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+  }
+</style>
