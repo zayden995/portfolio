@@ -1,0 +1,99 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import ActionLink from '../components/ActionLink.astro';
+import RoundCarousel from '../components/RoundCarousel.tsx';
+import { projects } from '../data/projects';
+
+/* The ring's radius divides by tan(PI / count), which is infinite at two
+   plates and zero at one — so below three it is undefined, not just sparse.
+   A grid covers that case. */
+const useCarousel = projects.length >= 3;
+
+const plates = projects.map((project) => ({ src: project.image }));
+
+/* Default spacing leaves 300px plates intersecting on a three-plate ring:
+   the radius works out near 126px, and the triangle they sit on has sides of
+   only 218px. This widens the ring until they clear with room to spare. */
+const RING_SPACING = 8;
+
+const pending = projects.filter((project) => project.comingSoon).length;
+---
+
+<BaseLayout
+  title="Projects"
+  description="Coursework and side projects from Zayden Chua's Applied AI & Data Analytics studies at Singapore Polytechnic."
+>
+  <PageHeader
+    eyebrow="Projects"
+    title="Things I've built"
+    lead="Nothing here yet. The course is early, and this page will fill up as it goes — coursework first, then whatever I end up making on my own."
+  />
+
+  <Section eyebrow={`${projects.length} ${projects.length === 1 ? 'slot' : 'slots'}`} wide>
+    <div data-reveal>
+      {
+        useCarousel ? (
+          <div class="h-[26rem] md:h-[32rem]">
+            <RoundCarousel
+              client:visible
+              images={plates}
+              spacing={RING_SPACING}
+              cornerRadius={0}
+              background="transparent"
+            />
+          </div>
+        ) : (
+          <ul class="grid gap-10 sm:grid-cols-2">
+            {projects.map((project) => {
+              const Card = project.href ? 'a' : 'div';
+              return (
+                <li>
+                  <Card
+                    href={project.href}
+                    class:list={[
+                      'block border border-hairline bg-panel transition-colors duration-300',
+                      project.href && 'hover:border-chalk',
+                    ]}
+                  >
+                    <img
+                      src={project.image}
+                      alt={project.imageAlt}
+                      loading="lazy"
+                      decoding="async"
+                      class="aspect-square w-full bg-panel object-cover"
+                    />
+                    <div class="bg-ground px-5 py-5">
+                      <h3 class="text-title">{project.title}</h3>
+                      <p class="mt-2 text-sm text-slate">{project.summary}</p>
+                      <p class="eyebrow mt-4">{project.year}</p>
+                    </div>
+                  </Card>
+                </li>
+              );
+            })}
+          </ul>
+        )
+      }
+    </div>
+
+    {
+      pending > 0 && (
+        <p class="mt-10 max-w-prose text-sm text-slate" data-reveal>
+          Every plate on the ring is a placeholder. They will be replaced with real
+          work as it gets finished, rather than filled with something that only
+          looks like it.
+        </p>
+      )
+    }
+  </Section>
+
+  <section class="shell py-20 md:py-28">
+    <div data-rule class="h-px w-full origin-left bg-hairline"></div>
+    <div class="mt-12 flex flex-wrap gap-x-8 gap-y-4" data-reveal>
+      <ActionLink href="/contact">Get in touch</ActionLink>
+      <ActionLink href="/involvements" variant="ghost">What I show up for</ActionLink>
+    </div>
+  </section>
+</BaseLayout>

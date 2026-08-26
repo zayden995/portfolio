@@ -29,10 +29,13 @@ export type NavItem = {
   href: string;
 };
 
+/* Involvements comes before Projects on purpose: the site's argument is what
+   he does outside class, and the running order should say so. */
 export const navItems: NavItem[] = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
   { label: 'Involvements', href: '/involvements' },
+  { label: 'Projects', href: '/projects' },
   { label: 'Contact', href: '/contact' },
 ];
 

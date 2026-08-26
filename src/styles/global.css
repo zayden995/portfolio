@@ -6,18 +6,20 @@
    propagates across the whole site.
    --------------------------------------------------------------------------- */
 @theme {
-  /* Palette — a deep blue ground that lifts toward the top of the viewport,
-     cool off-white type, and a bright cyan accent. Each involvement chapter
-     carries its own tint, set on the section. */
-  --color-ground: #070d1a;
-  --color-panel: #101b33;
-  --color-chalk: #e9edf5;
-  --color-slate: #8d9bb5;
-  --color-hairline: #22304d;
-  --color-accent: #5fd0ff;
+  /* Palette — monochrome on black. There is no hue anywhere in the system,
+     which is the point: the caustic background is the only light on the page,
+     and hierarchy is carried by value and weight instead of colour. Accent is
+     pure white, one clear step above body type. Each involvement chapter still
+     carries its own tint, set on the section, now as two near-blacks. */
+  --color-ground: #000000;
+  --color-panel: #0e0e0e;
+  --color-chalk: #ededed;
+  --color-slate: #8a8a8a;
+  --color-hairline: #262626;
+  --color-accent: #ffffff;
 
-  --color-tint-school: #16294f;
-  --color-tint-community: #123a4a;
+  --color-tint-school: #121212;
+  --color-tint-community: #1a1a1a;
 
   /* Type — Erode, an old-style serif in the Times New Roman mould, for
      anything you read. Switzer handles captions, counters and labels; that
@@ -27,31 +29,44 @@
   --font-utility: 'Switzer', ui-sans-serif, system-ui, sans-serif;
 
   /* Fluid type scale. Serifs need looser tracking than a grotesque, so the
-     negative letter-spacing here is gentler than it would be for a sans. */
+     negative letter-spacing here is gentler than it would be for a sans.
+
+     Display is deliberately the one step that did NOT grow when the rest of
+     the scale came up. The home headline is set in it and is written to break
+     across two hand-placed lines; widening it is how those lines start
+     wrapping on their own and the hero stops landing. */
   --text-display: clamp(2.75rem, 9vw, 8.5rem);
   --text-display--line-height: 0.98;
   --text-display--letter-spacing: -0.02em;
 
-  --text-headline: clamp(2rem, 5vw, 3.75rem);
+  --text-headline: clamp(2.25rem, 5.4vw, 4.25rem);
   --text-headline--line-height: 1.06;
   --text-headline--letter-spacing: -0.015em;
 
   /* Sits between headline and title — for long names that would otherwise
      fill a whole column on one line. */
-  --text-subhead: clamp(1.75rem, 3.2vw, 2.5rem);
+  --text-subhead: clamp(1.875rem, 3.5vw, 2.75rem);
   --text-subhead--line-height: 1.1;
   --text-subhead--letter-spacing: -0.012em;
 
-  --text-title: clamp(1.375rem, 2.4vw, 1.875rem);
+  --text-title: clamp(1.5rem, 2.7vw, 2.125rem);
   --text-title--line-height: 1.2;
   --text-title--letter-spacing: -0.005em;
 
-  --text-lead: clamp(1.125rem, 1.9vw, 1.5rem);
+  --text-lead: clamp(1.25rem, 2.1vw, 1.6875rem);
   --text-lead--line-height: 1.5;
 
-  --text-meta: 0.75rem;
+  --text-meta: 0.8125rem;
   --text-meta--line-height: 1.4;
   --text-meta--letter-spacing: 0.12em;
+
+  /* Tailwind's own steps, nudged up to match. Anything not on the custom
+     scale above — captions, form fields, card summaries, the nav — resolves
+     through these, so this is the lever for "a little bigger everywhere". */
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.55;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.6;
 
   /* Motion */
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
@@ -75,9 +90,14 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* The gradient sits on a fixed layer rather than on the body background:
-     background-attachment: fixed is unreliable on iOS, and this keeps the wash
-     steady while the page scrolls over it. */
+  /* The wash sits on a fixed layer rather than on the body background:
+     background-attachment: fixed is unreliable on iOS, and this keeps it
+     steady while the page scrolls over it.
+
+     It is also the floor of the design. The live caustic background is built
+     by src/lib/reflect.ts and only ever exists when JavaScript, WebGL and
+     motion preferences all allow it — everyone else gets this and nothing
+     else, so it has to hold the page on its own. */
   body::before {
     content: '';
     position: fixed;
@@ -86,10 +106,26 @@
     pointer-events: none;
     background: radial-gradient(
       125% 85% at 50% 0%,
-      #1c3a6b 0%,
-      #0e1e3d 40%,
+      #1a1a1a 0%,
+      #0d0d0d 40%,
       var(--color-ground) 100%
     );
+  }
+
+  /* The live background, layered over that wash.
+
+     Both this and body::before sit at z-index -1, so tree order decides which
+     wins: a pseudo-element precedes its host's children, which puts the canvas
+     on top of the gradient and both behind every real element on the page. No
+     other z-index in the site needs to know it exists. */
+  .reflect {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
   }
 
   ::selection {

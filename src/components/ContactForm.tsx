@@ -107,7 +107,9 @@ export default function ContactForm() {
         <button
           type="submit"
           disabled={status === 'sending'}
-          className="group inline-flex items-center gap-3 bg-chalk px-7 py-3.5 text-sm text-ground transition-colors duration-200 hover:bg-accent disabled:opacity-60"
+          // Hovers darker for the same reason as ActionLink's solid variant:
+          // white-on-nearly-white is not a visible state change.
+          className="group inline-flex items-center gap-3 bg-chalk px-7 py-3.5 text-sm text-ground transition-colors duration-200 hover:bg-slate disabled:opacity-60"
         >
           Send message
           <span

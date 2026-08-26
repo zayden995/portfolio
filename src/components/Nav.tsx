@@ -95,10 +95,10 @@ export default function Nav({ pathname, name }: NavProps) {
           : 'border-b border-transparent'
       }`}
     >
-      <nav aria-label="Main" className="shell flex items-center justify-between py-5">
+      <nav aria-label="Main" className="shell flex items-center justify-between py-6">
         <a
           href="/"
-          className="font-display text-base font-medium tracking-tight transition-opacity hover:opacity-60"
+          className="font-display text-xl font-medium tracking-tight transition-opacity hover:opacity-60"
         >
           {name}
         </a>
@@ -106,7 +106,7 @@ export default function Nav({ pathname, name }: NavProps) {
         {/* Desktop links */}
         <ul
           ref={listRef}
-          className="relative hidden items-center gap-8 md:flex"
+          className="relative hidden items-center gap-10 md:flex"
           onMouseLeave={() => setHovered(null)}
         >
           {navItems.map((item, index) => (
@@ -120,7 +120,7 @@ export default function Nav({ pathname, name }: NavProps) {
                 onMouseEnter={() => setHovered(index)}
                 onFocus={() => setHovered(index)}
                 onBlur={() => setHovered(null)}
-                className={`block py-1 text-sm transition-colors duration-200 ${
+                className={`block py-1 text-base transition-colors duration-200 ${
                   index === activeIndex ? 'text-chalk' : 'text-slate hover:text-chalk'
                 }`}
               >

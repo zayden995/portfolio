@@ -64,44 +64,55 @@ The form does not send anywhere yet, and says so rather than pretending to. Open
 (Formspree, Basin, Netlify Forms, or your own handler) to switch it on. The
 direct email and social links on the Contact page work already.
 
-### Projects — hidden, not deleted
+### Projects — live, but still placeholder
 
-There is no Projects page right now. The pieces are still here for when you have
-work to show: `src/components/ProjectCarousel.tsx` (a 3D drag-and-spring
-carousel) and `src/data/projects.ts`.
+`/projects` is back in the nav and rendering. What it is **not** yet is true:
+every entry in `src/data/projects.ts` is an invented placeholder, down to the
+stock photography. Replace them before this goes anywhere public — a portfolio
+that lists work you did not do is worse than a portfolio with no work on it.
 
-To bring it back, add `{ label: 'Projects', href: '/projects' }` to `navItems`
-in `src/data/site.ts` and create `src/pages/projects.astro`:
+Each entry wants a title, a one-line summary, the year, a link if there is one,
+and an image. Drop screenshots in `public/work/` and point `image` at
+`/work/whatever.jpg`. Delete `comingSoon` once the entry is real.
 
-```astro
----
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PageHeader from '../components/PageHeader.astro';
-import Section from '../components/Section.astro';
-import ProjectCarousel from '../components/ProjectCarousel.tsx';
-import { projects } from '../data/projects';
----
+The carousel shows images and nothing else — no titles, no captions — so the
+"Coming soon" wording is drawn into the placeholder plates themselves by
+`comingSoonPlate()` in `src/data/projects.ts`. It returns an inline SVG data
+URI, which is why those plates cost no request and stay sharp at any size.
 
-<BaseLayout title="Projects" description="[Description]">
-  <PageHeader eyebrow="Projects" title="[Selected work]" lead="[A line about the work.]" />
-  <Section eyebrow={`${projects.length} projects`} wide>
-    <div data-reveal>
-      <ProjectCarousel client:visible projects={projects} />
-    </div>
-  </Section>
-</BaseLayout>
-```
+The page picks its layout from the entry count: three or more get
+`RoundCarousel.tsx`, fewer get a plain grid. That is a correctness rule, not a
+taste one. The ring's radius divides by `tan(PI / count)`, which is infinite at
+two plates and zero at one, so below three the geometry is undefined. The
+threshold is `useCarousel` at the top of `src/pages/projects.astro`.
+
+For the same reason the page passes `spacing={8}` rather than the component's
+default of `3`: at exactly three plates the default radius works out near 126px
+while the plates are 300px wide, and they intersect.
 
 ## How it's put together
 
 **Design tokens** are defined once in `src/styles/global.css` under `@theme` —
-a deep blue ground (`--color-ground`), a raised panel tone, cool off-white type,
-a cyan accent, and one tint per involvement chapter. Changing a value there
-updates the whole site.
+a black ground (`--color-ground`), a raised panel tone, off-white type, a pure
+white accent, and one tint per involvement chapter. The palette is monochrome
+throughout: there is no hue anywhere in the system, and hierarchy is carried by
+value and weight instead of colour. Changing a value there updates the whole
+site.
 
-The blue wash itself is a fixed radial gradient painted on `body::before` rather
-than the body background — `background-attachment: fixed` is unreliable on iOS,
-and a fixed layer keeps the gradient steady while the page scrolls over it.
+Because accent is white and type is nearly white, anything sitting *on* a light
+surface has to hover darker rather than toward the accent — see the `solid`
+variant in `ActionLink.astro` and the submit button in `ContactForm.tsx`.
+
+The wash behind everything is a fixed radial gradient painted on `body::before`
+rather than the body background — `background-attachment: fixed` is unreliable
+on iOS, and a fixed layer keeps it steady while the page scrolls over it.
+
+**The live background** is `src/lib/reflect.ts`: a single-pass WebGL caustic
+field (component by Originkit, shaders unmodified) on one fixed canvas. It
+builds its own element rather than sitting in the markup, so no JavaScript, no
+WebGL, or `prefers-reduced-motion` all mean no canvas at all — those visitors
+get the gradient above, which is why it has to hold the page on its own. Every
+tunable is in the `CONFIG` object at the top of that file.
 
 One naming trap: the ground token is `--color-ground`, not `--color-base`.
 Tailwind already owns `text-base` as a font size, so a colour called `base`
@@ -156,7 +167,7 @@ Two details matter:
 
 - `Nav.tsx` — the underline springs between links and settles on the current page
 - `ContactForm.tsx` — form state
-- `ProjectCarousel.tsx` — dormant, see above
+- `RoundCarousel.tsx` — the projects ring: 3D transforms driven per frame
 
 Scroll reveals are deliberately applied on the Astro side of an island boundary,
 never inside one: GSAP animates via inline styles, and React is free to clobber

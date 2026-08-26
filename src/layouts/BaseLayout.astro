@@ -68,8 +68,10 @@ const canonical = new URL(pathname, Astro.site);
 
     <script>
       import { initAnimations } from '../lib/animations';
+      import { initReflect } from '../lib/reflect';
 
       initAnimations();
+      initReflect();
     </script>
   </body>
 </html>

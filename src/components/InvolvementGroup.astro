@@ -145,10 +145,14 @@ const counter = `${String(index + 1).padStart(2, '0')} / ${String(total).padStar
 
   /* Default, and the fallback for narrow screens, reduced motion and no JS:
      a plain vertical column. */
+  /* Translucent, not solid. While a chapter is pinned this fills the viewport,
+     and at full opacity it would hide the live background for most of the
+     longest page on the site. At 60% the caustics still read through and the
+     chapter keeps its own weight. */
   .wall {
     position: relative;
     margin-top: clamp(2.5rem, 6vw, 4rem);
-    background: var(--chapter-tint);
+    background: color-mix(in srgb, var(--chapter-tint) 60%, transparent);
     padding-block: clamp(3rem, 8vw, 5rem);
   }
 

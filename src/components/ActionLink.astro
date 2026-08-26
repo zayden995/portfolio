@@ -8,8 +8,14 @@ interface Props {
 
 const { href, variant = 'solid', class: className = '' } = Astro.props;
 
+/*
+ * `solid` hovers darker, not brighter. Accent used to be cyan, which read
+ * clearly against chalk; in a monochrome system accent is white and chalk is
+ * nearly white, so hovering toward it would be invisible. Slate is the step
+ * that still carries black type.
+ */
 const variants = {
-  solid: 'bg-chalk px-7 py-3.5 text-ground hover:bg-accent',
+  solid: 'bg-chalk px-7 py-3.5 text-ground hover:bg-slate',
   ghost: 'border-b border-chalk pb-1 hover:border-accent hover:text-accent',
 };
 ---
