@@ -1,0 +1,48 @@
+---
+import { Image } from 'astro:assets';
+import { site, hero } from '../../data/site';
+import portrait from '../../assets/photos/portrait.jpg';
+---
+
+<section class="sec t-dark hero" id="hero" data-theme="dark">
+  <div class="hero-stage">
+    <div class="hero-title">
+      <h1 class="display d-xl" data-split>
+        {hero.statement.join(' ')}
+      </h1>
+      <p class="hero-intro lede" data-hero-intro>{hero.intro}</p>
+
+      {/* In the flow rather than absolutely placed: the intro sits where a
+          pinned cue used to overlap it, and this cannot collide at any size. */}
+      <div class="cue">
+        <span class="cue-line" aria-hidden="true"></span>
+        <span class="meta">{hero.cue}</span>
+      </div>
+    </div>
+
+    <figure class="hero-portrait">
+      {/* The only eager image on the page — it is the LCP element. */}
+      <Image
+        src={portrait}
+        alt={site.name}
+        widths={[400, 700, 1000]}
+        sizes="(max-width: 860px) 100vw, 22vw"
+        loading="eager"
+        fetchpriority="high"
+        data-parallax-img
+      />
+    </figure>
+  </div>
+
+
+  <dl class="hero-foot">
+    {
+      hero.facts.map((fact) => (
+        <div>
+          <dt class="meta">{fact.label}</dt>
+          <dd>{fact.value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</section>

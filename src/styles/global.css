@@ -2,251 +2,996 @@
 
 /* ---------------------------------------------------------------------------
    Design tokens
-   Everything visual is derived from these. Change a value here and it
-   propagates across the whole site.
+
+   Palette and type are a direct translation of the jeskojets reference:
+   espresso and cream, no third hue anywhere. The page has no accent colour
+   because the inversion between sections is the accent.
    --------------------------------------------------------------------------- */
 @theme {
-  /* Palette — monochrome on black. There is no hue anywhere in the system,
-     which is the point: the caustic background is the only light on the page,
-     and hierarchy is carried by value and weight instead of colour. Accent is
-     pure white, one clear step above body type. Each involvement chapter still
-     carries its own tint, set on the section, now as two near-blacks. */
-  --color-ground: #000000;
-  --color-panel: #0e0e0e;
-  --color-chalk: #ededed;
-  --color-slate: #8a8a8a;
-  --color-hairline: #262626;
-  --color-accent: #ffffff;
+  --color-espresso: #312726;
+  --color-cream: #fff8ed;
+  --color-stone: #7a716e;
 
-  --color-tint-school: #121212;
-  --color-tint-community: #1a1a1a;
+  /* Archivo's width axis stands in for GT America Expanded/Extended:
+     125 for display, 112 for reading, 100 for the small tracked meta. */
+  --font-display: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-body: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
-  /* Type — Erode, an old-style serif in the Times New Roman mould, for
-     anything you read. Switzer handles captions, counters and labels; that
-     serif/grotesque split is what gives the page its technical edge. */
-  --font-display: 'Erode', 'Times New Roman', Times, serif;
-  --font-body: 'Erode', 'Times New Roman', Times, serif;
-  --font-utility: 'Switzer', ui-sans-serif, system-ui, sans-serif;
-
-  /* Fluid type scale. Serifs need looser tracking than a grotesque, so the
-     negative letter-spacing here is gentler than it would be for a sans.
-
-     Display is deliberately the one step that did NOT grow when the rest of
-     the scale came up. The home headline is set in it and is written to break
-     across two hand-placed lines; widening it is how those lines start
-     wrapping on their own and the hero stops landing. */
-  --text-display: clamp(2.75rem, 9vw, 8.5rem);
-  --text-display--line-height: 0.98;
-  --text-display--letter-spacing: -0.02em;
-
-  --text-headline: clamp(2.25rem, 5.4vw, 4.25rem);
-  --text-headline--line-height: 1.06;
-  --text-headline--letter-spacing: -0.015em;
-
-  /* Sits between headline and title — for long names that would otherwise
-     fill a whole column on one line. */
-  --text-subhead: clamp(1.875rem, 3.5vw, 2.75rem);
-  --text-subhead--line-height: 1.1;
-  --text-subhead--letter-spacing: -0.012em;
-
-  --text-title: clamp(1.5rem, 2.7vw, 2.125rem);
-  --text-title--line-height: 1.2;
-  --text-title--letter-spacing: -0.005em;
-
-  --text-lead: clamp(1.25rem, 2.1vw, 1.6875rem);
-  --text-lead--line-height: 1.5;
-
-  --text-meta: 0.8125rem;
-  --text-meta--line-height: 1.4;
-  --text-meta--letter-spacing: 0.12em;
-
-  /* Tailwind's own steps, nudged up to match. Anything not on the custom
-     scale above — captions, form fields, card summaries, the nav — resolves
-     through these, so this is the lever for "a little bigger everywhere". */
-  --text-sm: 0.9375rem;
-  --text-sm--line-height: 1.55;
-  --text-base: 1.0625rem;
-  --text-base--line-height: 1.6;
-
-  /* Motion */
-  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Motion. Slow and settled — nothing bouncy, nothing abrupt. */
+  --ease-cinematic: cubic-bezier(0.62, 0.05, 0.01, 0.99);
 }
 
-/* ---------------------------------------------------------------------------
-   Base
-   --------------------------------------------------------------------------- */
+:root {
+  --gutter: clamp(1.25rem, 4vw, 4.5rem);
+
+  /* Sized so the hero statement settles at four lines on a laptop and still
+     leaves room for the intro, the fact row and the scroll cue inside one
+     viewport. Raising this is the fastest way to push them below the fold. */
+  --d-xl: clamp(2.6rem, 8vw, 8.5rem);
+  --d-l: clamp(2.4rem, 7.6vw, 8rem);
+  --d-m: clamp(1.75rem, 3.8vw, 3.25rem);
+  --d-s: clamp(1.35rem, 2.2vw, 1.9rem);
+  --body: clamp(1rem, 1.08vw, 1.15rem);
+  --meta: clamp(0.66rem, 0.76vw, 0.76rem);
+}
+
+/* Section themes. Every colour below is read from these two blocks, so a
+   section is themed by one class and everything inside it follows. */
+.t-dark {
+  --bg: var(--color-espresso);
+  --fg: var(--color-cream);
+  --mut: #a2948f;
+  --rule: rgb(255 248 237 / 0.22);
+  --field: rgb(255 248 237 / 0.08);
+}
+.t-light {
+  --bg: var(--color-cream);
+  --fg: var(--color-espresso);
+  --mut: var(--color-stone);
+  --rule: rgb(49 39 38 / 0.18);
+  --field: rgb(49 39 38 / 0.05);
+}
+
 @layer base {
-  html {
-    -webkit-text-size-adjust: 100%;
-    scroll-behavior: smooth;
+  * {
+    box-sizing: border-box;
   }
 
   body {
-    background-color: var(--color-ground);
-    color: var(--color-chalk);
-    position: relative;
+    margin: 0;
+    background: var(--color-espresso);
+    color: var(--color-cream);
     font-family: var(--font-body);
+    font-variation-settings: 'wdth' 112;
+    font-size: var(--body);
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* `clip`, not `hidden`: hidden turns body into a scroll container and
+       breaks ScrollTrigger's pinning. clip contains the overflow without it. */
+    overflow-x: clip;
   }
 
-  /* The wash sits on a fixed layer rather than on the body background:
-     background-attachment: fixed is unreliable on iOS, and this keeps it
-     steady while the page scrolls over it.
-
-     It is also the floor of the design. The live caustic background is built
-     by src/lib/reflect.ts and only ever exists when JavaScript, WebGL and
-     motion preferences all allow it — everyone else gets this and nothing
-     else, so it has to hold the page on its own. */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background: radial-gradient(
-      125% 85% at 50% 0%,
-      #1a1a1a 0%,
-      #0d0d0d 40%,
-      var(--color-ground) 100%
-    );
-  }
-
-  /* The live background, layered over that wash.
-
-     Both this and body::before sit at z-index -1, so tree order decides which
-     wins: a pseudo-element precedes its host's children, which puts the canvas
-     on top of the gradient and both behind every real element on the page. No
-     other z-index in the site needs to know it exists. */
-  .reflect {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    display: block;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-
-  ::selection {
-    background-color: var(--color-chalk);
-    color: var(--color-ground);
-  }
-
-  /* One visible, consistent focus ring across the whole site. */
-  :focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 3px;
-    border-radius: 2px;
-  }
-
-  h1,
-  h2,
-  h3 {
-    font-family: var(--font-display);
-    font-weight: 500;
-    text-wrap: balance;
+  a {
+    color: inherit;
   }
 
   p {
-    text-wrap: pretty;
+    max-width: 62ch;
+  }
+
+  /* Lenis */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+  .lenis.lenis-smooth iframe {
+    pointer-events: none;
   }
 }
 
 /* ---------------------------------------------------------------------------
-   Utilities
+   Type
    --------------------------------------------------------------------------- */
-@utility eyebrow {
-  font-family: var(--font-utility);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
-  letter-spacing: var(--text-meta--letter-spacing);
+.display {
+  font-variation-settings: 'wdth' 125, 'wght' 700;
+  letter-spacing: -0.065em;
+  line-height: 0.86;
+  margin: 0;
+  text-wrap: balance;
+}
+.d-xl {
+  font-size: var(--d-xl);
+}
+.d-l {
+  font-size: var(--d-l);
+}
+.d-m {
+  font-size: var(--d-m);
+  letter-spacing: -0.05em;
+  line-height: 0.94;
+}
+.d-s {
+  font-size: var(--d-s);
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+  font-variation-settings: 'wdth' 125, 'wght' 600;
+}
+
+.meta {
+  font-size: var(--meta);
+  font-variation-settings: 'wdth' 100, 'wght' 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-slate);
-  font-weight: 500;
+  color: var(--mut);
+  line-height: 1.4;
 }
 
-/* Page gutter, shared by every section so the vertical rhythm stays honest. */
-@utility shell {
-  width: 100%;
-  max-width: 84rem;
-  margin-inline: auto;
-  padding-inline: 1.5rem;
+.lede {
+  font-size: clamp(1.05rem, 1.5vw, 1.4rem);
+  line-height: 1.45;
+  max-width: 34ch;
+  margin: 0;
+}
 
-  @media (width >= 48rem) {
-    padding-inline: 2.5rem;
+/* ---------------------------------------------------------------------------
+   Shell
+   --------------------------------------------------------------------------- */
+.sec {
+  position: relative;
+  background: var(--bg);
+  color: var(--fg);
+  padding-inline: var(--gutter);
+  padding-block: clamp(5rem, 11vw, 11rem);
+}
+
+/* ---------------------------------------------------------------------------
+   Navigation
+   --------------------------------------------------------------------------- */
+.nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: clamp(1rem, 1.8vw, 1.6rem) var(--gutter);
+  color: var(--color-cream);
+  transition: color 0.45s ease;
+  pointer-events: none;
+}
+.nav.on-light {
+  color: var(--color-espresso);
+}
+.nav a,
+.nav button {
+  pointer-events: auto;
+}
+
+.nav-mark {
+  font-variation-settings: 'wdth' 125, 'wght' 700;
+  letter-spacing: -0.05em;
+  font-size: clamp(0.95rem, 1.15vw, 1.15rem);
+  text-decoration: none;
+}
+.nav-links {
+  display: flex;
+  gap: clamp(1rem, 2.2vw, 2.4rem);
+}
+.nav-links a {
+  font-size: var(--meta);
+  font-variation-settings: 'wdth' 100, 'wght' 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: currentColor;
+  opacity: 0.75;
+  transition: opacity 0.25s ease;
+}
+.nav-links a:hover,
+.nav-links a:focus-visible {
+  opacity: 1;
+}
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: 0;
+  color: currentColor;
+  font-family: inherit;
+  font-size: var(--meta);
+  font-variation-settings: 'wdth' 100, 'wght' 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0.5rem 0;
+}
+
+.nav-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  background: var(--color-espresso);
+  color: var(--color-cream);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  padding: var(--gutter);
+}
+.nav-panel a {
+  font-variation-settings: 'wdth' 125, 'wght' 600;
+  letter-spacing: -0.04em;
+  font-size: clamp(2rem, 9vw, 3.5rem);
+  line-height: 1.05;
+  text-decoration: none;
+}
+
+@media (max-width: 860px) {
+  .nav-links {
+    display: none;
   }
-
-  @media (width >= 80rem) {
-    padding-inline: 4rem;
+  .nav-toggle {
+    display: block;
   }
 }
 
 /* ---------------------------------------------------------------------------
-   Reveal animations
-
-   GSAP sets the final state. The hidden starting state is only applied when
-   JavaScript is running (`.js` is added to <html> by an inline script in the
-   <head>), so content is never trapped invisible if a script fails to load.
+   Hero
    --------------------------------------------------------------------------- */
-.js [data-reveal],
-.js [data-hero-item] {
-  opacity: 0;
-  will-change: transform, opacity;
-}
-
-/* A clipping window for text that rises into view. The padding/margin pair
-   keeps descenders (g, y, p) from being shaved off by the overflow clip. */
-[data-reveal-mask] {
-  display: block;
+.hero {
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding-block: clamp(7rem, 12vw, 9rem) clamp(1.5rem, 3vw, 2.5rem);
   overflow: hidden;
-  padding-bottom: 0.14em;
-  margin-bottom: -0.14em;
+}
+/* The two knobs for the portrait's placement. `--portrait-w` is its column
+   width; `--portrait-inset` pulls it in from the right gutter. Raise the inset
+   to move it further left, lower it to push it back toward the edge. */
+.hero {
+  --portrait-w: 24vw;
+  --portrait-inset: clamp(1rem, 5vw, 5.5rem);
 }
 
-[data-reveal-mask] > * {
+.hero-stage {
+  display: grid;
+  /* The column carries the inset as well as the picture, so pulling the
+     portrait left shifts it without shrinking it. */
+  grid-template-columns: 1fr minmax(0, calc(var(--portrait-w) + var(--portrait-inset)));
+  /* Centred against the headline block rather than sitting on its baseline,
+     which is what dropped it to the bottom of the screen. */
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 4rem);
+}
+.hero-title {
+  position: relative;
+  z-index: 2;
+}
+.hero-title .display {
+  max-width: 12ch;
+}
+.hero-intro {
+  margin-top: clamp(1.5rem, 3vw, 2.25rem);
+  color: var(--mut);
+  max-width: 38ch;
+}
+
+/* The portrait is the middle of three scrubbed layers: ground, portrait,
+   headline, each moving at its own rate. */
+.hero-portrait {
+  position: relative;
+  z-index: 1;
+  aspect-ratio: 3 / 4;
+  max-width: 100%;
+  overflow: hidden;
+  margin: 0 var(--portrait-inset) 0 0;
+  will-change: transform;
+}
+.hero-portrait img {
+  width: 100%;
+  height: 130%;
+  object-fit: cover;
+  object-position: 50% 30%;
   display: block;
+  filter: grayscale(0.35) contrast(1.05) brightness(0.9);
+  will-change: transform;
 }
 
-.js [data-reveal-mask] > * {
-  transform: translateY(110%);
+.hero-foot {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--rule);
+  margin: clamp(2rem, 5vw, 4rem) 0 0;
+}
+.hero-foot div {
+  padding: clamp(0.85rem, 1.4vw, 1.2rem) clamp(0.75rem, 1.4vw, 1.4rem) 0 0;
+}
+.hero-foot div + div {
+  border-left: 1px solid var(--rule);
+  padding-left: clamp(0.75rem, 1.4vw, 1.4rem);
+}
+.hero-foot dt {
+  margin: 0 0 0.4rem;
+}
+.hero-foot dd {
+  margin: 0;
+  font-variation-settings: 'wdth' 112, 'wght' 500;
+  font-size: clamp(0.8rem, 0.95vw, 0.95rem);
 }
 
-.js [data-rule] {
-  transform: scaleX(0);
+.cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: clamp(1.5rem, 3vw, 2.5rem);
+}
+.cue-line {
+  width: 2.5rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
   transform-origin: left center;
 }
 
-/* anime.js splits these into lines at runtime. Held back until it has, so the
-   text never flashes in unsplit and then jump. */
-.js [data-split-lines] {
-  visibility: hidden;
+@media (max-width: 860px) {
+  .hero-stage {
+    grid-template-columns: 1fr;
+  }
+  .hero-portrait {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    aspect-ratio: auto;
+    max-width: none;
+    /* Full-bleed behind the type here, so the desktop inset must not apply. */
+    margin: 0;
+    opacity: 0.2;
+  }
+  .hero-foot {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .hero-foot div:nth-child(3),
+  .hero-foot div:nth-child(4) {
+    border-top: 1px solid var(--rule);
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+  }
+  .hero-foot div:nth-child(3) {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .cue {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Statement
+   --------------------------------------------------------------------------- */
+.statement-line {
+  max-width: 22ch;
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(1.25rem, 3vw, 3rem);
+  margin-top: clamp(3rem, 7vw, 6rem);
+}
+.count-n {
+  font-variation-settings: 'wdth' 125, 'wght' 700;
+  letter-spacing: -0.06em;
+  font-size: clamp(2.75rem, 6.5vw, 6rem);
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+  display: block;
+}
+.count-l {
+  margin-top: 0.75rem;
+  display: block;
+  max-width: 18ch;
+}
+
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+  margin-top: clamp(4rem, 9vw, 8rem);
+}
+.pillar {
+  border-top: 1px solid var(--rule);
+  padding-top: clamp(1rem, 1.6vw, 1.4rem);
+}
+.pillar p {
+  margin: 0.9rem 0 0;
+  font-size: clamp(0.9rem, 1vw, 1.02rem);
+  color: var(--mut);
+  max-width: 30ch;
+}
+
+@media (max-width: 860px) {
+  .counts,
+  .pillars {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 520px) {
+  .counts,
+  .pillars {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Specification — the candidature table and its drawing
+   --------------------------------------------------------------------------- */
+.spec-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  margin-top: clamp(3rem, 6vw, 5rem);
+  align-items: start;
+}
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.spec-table th,
+.spec-table td {
+  text-align: left;
+  padding: clamp(0.9rem, 1.5vw, 1.25rem) 0;
+  border-top: 1px solid var(--rule);
+  vertical-align: baseline;
+}
+.spec-table tr:last-child th,
+.spec-table tr:last-child td {
+  border-bottom: 1px solid var(--rule);
+}
+.spec-table th {
+  width: 42%;
+  font-weight: 400;
+}
+.spec-table td {
+  font-variation-settings: 'wdth' 118, 'wght' 600;
+  font-size: clamp(1rem, 1.5vw, 1.35rem);
+  letter-spacing: -0.02em;
+}
+
+.blueprint {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+.bp-line {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+.bp-axis {
+  stroke: var(--fg);
+  stroke-width: 1;
+}
+.bp-fill {
+  fill: var(--fg);
+  opacity: 0.12;
+}
+.bp-text {
+  fill: var(--mut);
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-variation-settings: 'wdth' 100, 'wght' 500;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+.bp-now {
+  fill: var(--fg);
+}
+.bp-now-text {
+  fill: var(--fg);
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-variation-settings: 'wdth' 100, 'wght' 600;
+  letter-spacing: 1.4px;
+}
+
+@media (max-width: 860px) {
+  .spec-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Tracks — Involvements and Projects, pinned horizontal
+   --------------------------------------------------------------------------- */
+/* The side gutter moves off the section and onto its children, so the track
+   viewport spans the full width. That is what lets the opening overlay be
+   genuinely full-bleed instead of inset by the gutter. */
+.track-sec {
+  overflow: clip;
+  padding-block: 0;
+  padding-inline: 0;
+}
+.track-head {
+  padding-block: clamp(4rem, 8vw, 7rem) clamp(1.5rem, 3vw, 2.25rem);
+  padding-inline: var(--gutter);
+}
+/* The viewport is what gets pinned, so the clipping belongs here — the track
+   runs past the right edge and this is what hides it.
+
+   It is a full screen tall with the cards centred inside it, so that once the
+   section pins the cards sit in the middle of the viewport rather than jammed
+   against the top edge with dead space beneath them. */
+.track-vp {
+  position: relative;
+  overflow: hidden;
+  height: 100svh;
+  display: flex;
+  align-items: center;
+}
+.track {
+  display: flex;
+  gap: clamp(1rem, 2.4vw, 2.5rem);
+  width: max-content;
+  padding-left: var(--gutter);
+}
+.card {
+  width: clamp(17rem, 26vw, 24rem);
+  flex: none;
+}
+/* The track is pinned, so a card taller than the viewport simply loses its
+   spec table off the bottom edge. Capping the picture in svh keeps the whole
+   card — image, blurb and table — inside one screen at any height. */
+.card-img {
+  aspect-ratio: 4 / 5;
+  max-height: 38svh;
+  overflow: hidden;
+  background: var(--field);
+}
+.card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  will-change: transform;
+  transition: filter 0.5s var(--ease-cinematic);
+  filter: grayscale(0.25);
+}
+.card:hover .card-img img {
+  filter: grayscale(0);
+}
+.card-body {
+  padding-top: clamp(0.9rem, 1.4vw, 1.25rem);
+}
+.card-eyebrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+.card p {
+  margin: 0.7rem 0 0;
+  color: var(--mut);
+  font-size: clamp(0.88rem, 0.98vw, 1rem);
+  max-width: 34ch;
+}
+
+/* The spec table inside a card — jesko's aircraft metadata. */
+.card-specs {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: clamp(1rem, 1.6vw, 1.4rem);
+}
+.card-specs th,
+.card-specs td {
+  text-align: left;
+  border-top: 1px solid var(--rule);
+  padding: 0.55rem 0;
+  vertical-align: baseline;
+}
+.card-specs th {
+  width: 40%;
+  font-weight: 400;
+}
+.card-specs td {
+  font-variation-settings: 'wdth' 112, 'wght' 600;
+  font-size: clamp(0.82rem, 0.95vw, 0.95rem);
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 860px) {
+  /* Nothing pins below this width, so the viewport goes back to being sized
+     by its contents and the track becomes an ordinary vertical stack. The
+     opening overlay stops being an overlay and simply leads the section. */
+  .track-vp {
+    height: auto;
+    display: block;
+  }
+  .track {
+    width: auto;
+    flex-direction: column;
+    gap: clamp(2.5rem, 7vw, 4rem);
+    padding-bottom: clamp(3rem, 8vw, 5rem);
+  }
+  .card {
+    width: 100%;
+  }
+}
+
+/* The opening overlay. It sits inside the pinned track viewport so the
+   picture and the card it becomes are never separated by any scrolling: the
+   frame contracts onto the first card's image and the overlay then dissolves,
+   leaving that card exactly where the picture was. */
+.track-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--color-espresso);
+  color: var(--color-cream);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  align-items: end;
+  gap: clamp(1.5rem, 4vw, 4rem);
+  padding: var(--gutter);
+  padding-block: clamp(6rem, 12vw, 9rem) var(--gutter);
+}
+
+.track-intro-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  will-change: top, left, width, height;
+}
+.track-intro-media {
+  position: absolute;
+  inset: -10% 0;
+  will-change: transform;
+}
+.track-intro-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(0.4) contrast(1.06) brightness(0.62);
+}
+
+.track-intro-line {
+  grid-column: 1;
+  align-self: end;
+  position: relative;
+  z-index: 2;
+  max-width: 18ch;
+}
+.track-intro-head {
+  grid-column: 2;
+  align-self: center;
+  position: relative;
+  z-index: 2;
+}
+.track-intro-head h2 {
+  max-width: 14ch;
+}
+.track-intro-head .lede {
+  margin-top: clamp(1rem, 2vw, 1.5rem);
+  color: #a2948f;
+}
+
+@media (max-width: 860px) {
+  /* Nothing pins here, so the overlay stops being an overlay and simply leads
+     the section. Declared after the rules above so it actually wins. */
+  .track-intro {
+    position: relative;
+    inset: auto;
+    grid-template-columns: 1fr;
+    align-content: end;
+    height: 100svh;
+    margin-bottom: clamp(3rem, 8vw, 5rem);
+  }
+  .track-intro-line,
+  .track-intro-head {
+    grid-column: 1;
+    align-self: end;
+  }
+}
+
+/* While the overlay covers the top of the screen the nav sits on espresso, so
+   it has to stay cream even though the section it belongs to is a light one.
+   Set on the root element, which React never rewrites. */
+html.intro-dark .nav {
+  color: var(--color-cream);
+}
+
+/* ---------------------------------------------------------------------------
+   Skills
+   --------------------------------------------------------------------------- */
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2rem, 5vw, 4.5rem);
+  margin-top: clamp(3rem, 7vw, 6rem);
+}
+.skill-card-img {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--field);
+  margin-bottom: clamp(1rem, 1.8vw, 1.5rem);
+}
+.skill-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(0.35) brightness(0.9);
+  transition:
+    transform 0.9s var(--ease-cinematic),
+    filter 0.6s var(--ease-cinematic);
+}
+.skill-card:hover .skill-card-img img {
+  transform: scale(1.04);
+  filter: grayscale(0) brightness(1);
+}
+.skill-card p {
+  margin: 0.9rem 0 0;
+  color: var(--mut);
+  max-width: 38ch;
+}
+
+@media (max-width: 860px) {
+  .skill-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Reach — the index, and the clock
+   --------------------------------------------------------------------------- */
+/* Reach pins, so the whole section has to fit one screen — hence the tighter
+   block padding and row rhythm than the other sections use. */
+.index-sec {
+  overflow: clip;
+  padding-block: clamp(2.5rem, 5vw, 4rem);
+}
+.index-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+.index-count {
+  font-variation-settings: 'wdth' 125, 'wght' 700;
+  letter-spacing: -0.06em;
+  font-size: clamp(2.5rem, 5.5vw, 5.5rem);
+  line-height: 0.85;
+  font-variant-numeric: tabular-nums;
+  display: block;
+}
+.index-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.index-list li {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr auto;
+  gap: 1rem;
+  align-items: baseline;
+  border-top: 1px solid var(--rule);
+  padding: clamp(0.4rem, 0.75vw, 0.65rem) 0;
+  opacity: 0.4;
+  transition: opacity 0.4s ease;
+}
+.index-list li.is-on {
+  opacity: 1;
+}
+.index-name {
+  font-variation-settings: 'wdth' 118, 'wght' 600;
+  font-size: clamp(0.95rem, 1.25vw, 1.2rem);
+  letter-spacing: -0.03em;
+}
+
+
+@media (max-width: 860px) {
+  .index-grid {
+    grid-template-columns: 1fr;
+  }
+  .index-list li {
+    grid-template-columns: 2.75rem 1fr;
+  }
+  .index-list li .meta:last-child {
+    grid-column: 2;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Contact
+   --------------------------------------------------------------------------- */
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  margin-top: clamp(3rem, 6vw, 5rem);
+  align-items: start;
+}
+.field {
+  display: block;
+  margin-bottom: clamp(1rem, 1.8vw, 1.5rem);
+}
+.field span {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.field input,
+.field textarea {
+  width: 100%;
+  background: var(--field);
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-variation-settings: 'wdth' 112;
+  padding: 0.85rem 0.9rem;
+  border-radius: 0;
+}
+.field textarea {
+  resize: vertical;
+  min-height: 6.5rem;
+}
+.field input:focus-visible,
+.field textarea:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+.send {
+  font-family: var(--font-body);
+  font-variation-settings: 'wdth' 118, 'wght' 600;
+  letter-spacing: -0.02em;
+  font-size: 1rem;
+  background: var(--fg);
+  color: var(--bg);
+  border: 0;
+  border-radius: 0;
+  padding: 1rem 2rem;
+  cursor: pointer;
+  transition: opacity 0.25s ease;
+}
+.send:hover {
+  opacity: 0.82;
+}
+.send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.send:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+.form-note {
+  margin-top: 1rem;
+  min-height: 1.4em;
+}
+
+.contact-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.contact-links li {
+  border-top: 1px solid var(--rule);
+  padding: clamp(0.8rem, 1.4vw, 1.1rem) 0;
+}
+.contact-links a,
+.contact-links .contact-handle {
+  font-variation-settings: 'wdth' 118, 'wght' 600;
+  font-size: clamp(1rem, 1.5vw, 1.3rem);
+  letter-spacing: -0.025em;
+  text-decoration: none;
+  display: block;
+  margin-top: 0.35rem;
+  word-break: break-word;
+}
+.contact-links a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* Local time and location, sitting under the contact links. */
+.contact-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  border-top: 1px solid var(--rule);
+  margin-top: clamp(2rem, 4vw, 3rem);
+  padding-top: clamp(1rem, 2vw, 1.5rem);
+}
+.contact-meta-value {
+  font-variation-settings: 'wdth' 118, 'wght' 600;
+  font-size: clamp(1.2rem, 2.1vw, 1.8rem);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  display: block;
+  margin-top: 0.4rem;
+}
+
+.colophon {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--rule);
+  margin-top: clamp(4rem, 9vw, 8rem);
+  padding-top: clamp(1rem, 2vw, 1.5rem);
+}
+
+@media (max-width: 860px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion
+
+   Nothing is hidden in CSS. Every from-state is set by GSAP and only when
+   motion is allowed, so the page at rest — no JS, or reduced motion — is the
+   complete page rather than a stack of invisible sections.
+   --------------------------------------------------------------------------- */
+.split-mask {
+  display: block;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
+  /* No pinning runs, so the track lays itself out rather than relying on
+     scroll to move it, and the overlay leads the section instead of covering
+     it. The page at rest is the whole page. */
+  .track-vp {
+    height: auto;
+    display: block;
   }
-
-  /* Motion off — but everything must still be visible. */
-  .js [data-reveal],
-  .js [data-hero-item],
-  .js [data-reveal-mask] > *,
-  .js [data-rule] {
-    opacity: 1 !important;
-    transform: none !important;
+  .track {
+    width: auto;
+    flex-direction: column;
+    gap: clamp(2.5rem, 7vw, 4rem);
   }
-
-  /* No splitter runs, so this text must show as ordinary markup. */
-  .js [data-split-lines] {
-    visibility: visible !important;
+  .card {
+    width: 100%;
+    max-width: 34rem;
+  }
+  .track-intro {
+    position: relative;
+    inset: auto;
+    grid-template-columns: 1fr;
+    align-content: end;
+    height: 100svh;
+    margin-bottom: clamp(3rem, 8vw, 5rem);
+  }
+  .track-intro-line,
+  .track-intro-head {
+    grid-column: 1;
+    align-self: end;
   }
 
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

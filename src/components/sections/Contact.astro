@@ -1,0 +1,53 @@
+---
+import ContactForm from '../ContactForm.tsx';
+import { site, socialLinks } from '../../data/site';
+
+const year = new Date().getFullYear();
+---
+
+<section class="sec t-light" id="contact" data-theme="light">
+  <h2 class="display d-l" style="max-width:12ch" data-split>Start a conversation.</h2>
+
+  <div class="contact-grid">
+    {/* client:visible — the form is the last thing on the page, so there is no
+        reason to ship or hydrate it before anyone scrolls to it. */}
+    <ContactForm client:visible />
+
+    <div>
+      <ul class="contact-links">
+        {
+          socialLinks.map((link) => (
+            <li>
+              <span class="meta">{link.label}</span>
+              {/* An entry with no href is shown as plain text rather than a
+                  dead link — see the WhatsApp note in site.ts. */}
+              {link.href ? (
+                <a href={link.href}>{link.handle}</a>
+              ) : (
+                <span class="contact-handle">{link.handle}</span>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="contact-meta">
+        <div>
+          <span class="meta">Local time</span>
+          {/* Rendered blank on the server and filled in by the client, so the
+              markup never depends on the build machine's clock or zone. */}
+          <span class="contact-meta-value" data-clock data-timezone={site.timezone}>--:--:--</span>
+        </div>
+        <div>
+          <span class="meta">Based in</span>
+          <span class="contact-meta-value">{site.location}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <span class="meta">© {year}</span>
+    <span class="meta">Built with Astro · Scroll behaviour after jeskojets.com</span>
+  </div>
+</section>

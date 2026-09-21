@@ -1,0 +1,51 @@
+---
+import { Image } from 'astro:assets';
+import type { TrackItem } from '../data/types';
+
+interface Props {
+  item: TrackItem;
+  /** Printed top-left of the card — "Event", "Project". */
+  eyebrow: string;
+}
+
+const { item, eyebrow } = Astro.props;
+
+/* The eyebrow's right-hand side echoes the year, when the data carries one. */
+const year = item.specs.find((spec) => spec.label.toLowerCase() === 'year')?.value ?? '';
+---
+
+<article class="card">
+  <div class="card-img">
+    <Image
+      src={item.image}
+      alt={item.imageAlt}
+      widths={[320, 540, 860]}
+      sizes="(max-width: 860px) 100vw, 24rem"
+      loading="lazy"
+      data-card-img
+    />
+  </div>
+
+  <div class="card-body">
+    <div class="card-eyebrow">
+      <span class="meta">{eyebrow}</span>
+      <span class="meta">{year}</span>
+    </div>
+
+    <h3 class="display d-s">{item.name}</h3>
+    <p>{item.blurb}</p>
+
+    <table class="card-specs">
+      <tbody>
+        {
+          item.specs.map((spec) => (
+            <tr>
+              <th class="meta">{spec.label}</th>
+              <td>{spec.value}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</article>

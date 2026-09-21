@@ -1,186 +1,234 @@
 # Portfolio
 
-A personal site built with Astro, React islands, Tailwind CSS, GSAP, anime.js,
-and React Spring.
+Zayden Chua's personal site: a single-page, scroll-driven portfolio built with
+Astro, GSAP and Lenis, with two small React islands.
 
 ```bash
 npm install
 npm run dev      # http://localhost:4321
-npm run build    # type-checks, then builds to dist/
+npm run build    # type-checks (astro check), then builds to dist/
 npm run preview  # serve the production build
 ```
 
+`astro dev` runs as a **background daemon** in Astro 7. If `npm run dev` exits
+straight away saying a server is already running, one is — use:
+
+```bash
+npx astro dev status   # is one running, and where
+npx astro dev stop     # stop it
+npx astro dev logs     # read its output
+```
+
+For the history of the project, what has been tried, and known traps, see
+[`HANDOFF.md`](HANDOFF.md).
+
+---
+
 ## Making it yours
 
-Anything still wrapped in square brackets is a placeholder — search the project
-for `[` to find them all. Almost everything lives in four files:
+Everything you would normally edit is in `src/data/`. You should not need to
+open a component to change content, add an event, or add a project.
+
+Placeholders are in square brackets. Find every one with:
+
+```bash
+grep -rn "\[" src/data/
+```
 
 | File | What's in it |
 | --- | --- |
-| `src/data/site.ts` | Name, school, course, location, email, the home headline, nav, social links |
-| `src/data/involvements.ts` | CCAs, community work, and the events shown in the tracks |
-| `src/data/about.ts` | Skill groups, and education with the roles held at each school |
-| `src/styles/global.css` | Colours, fonts, and the type scale |
+| `src/data/site.ts` | Name, course, location, timezone, email, the hero, nav, contact links |
+| `src/data/about.ts` | The statement and its four counters, bio, pillars, candidature table, skills cards |
+| `src/data/involvements.ts` | The events track: heading, lede, opening line, and each event |
+| `src/data/projects.ts` | The projects track: heading, lede, and each project |
+| `src/data/experiences.ts` | The full list of committees, organisations and events |
+| `src/data/types.ts` | The shape of a card. No content — leave it alone unless the card changes |
 
-Then update the page copy in `src/pages/*.astro`, and set your real domain as
-`site` in `astro.config.mjs` so canonical URLs are correct.
+Before deploying, set your real domain as `site` in `astro.config.mjs`. It is
+still `https://example.com`, which makes canonical URLs and share previews wrong.
 
-### Involvements
+### Events and projects
 
-`src/data/involvements.ts` holds a list of groups. Each group has:
+Both tracks use the same card, so an entry in either file looks like this:
 
-- `tint` — which colour world the chapter sits in (`school` or `community`)
-- `pullQuote` — one line that sits inside the photo wall
-- `organisations` — one or more, each with its `roles` listed newest first
-- `events` — the photographs you scroll sideways through, each with an image and
-  a short description
+```ts
+{
+  name: 'Freshman Orientation Camp',
+  blurb: 'About thirty words on what it was and what you actually did.',
+  image: focCommittee,            // imported at the top of the file
+  imageAlt: 'The orientation organising committee',
+  specs: [
+    { label: 'Role', value: 'Organising committee' },
+    { label: 'Organisation', value: 'School of Computing Club' },
+    { label: 'Year', value: 'AY26/27' },
+    { label: 'Outcome', value: 'Full cohort onboarded over three days' },
+  ],
+},
+```
 
-The page renders one block per group: a vertical intro with the roles, then the
-sideways photo wall. Add a group and a new track appears. `currentRoles` at the bottom
-of the file is derived from the same data and feeds the home page summary, so
-the two never drift apart.
+- `specs` prints as a table, in order. Events and projects can use different
+  labels — `Scale` for an event, `Stack` for a project. Four rows is what the
+  card is sized for
+- A `Year` row is echoed in the top-right corner of the card automatically
+- Put substance in the blurb. "Planned a three-day camp for 120 juniors" says
+  far more than "helped with camp"
 
-Put the substance in `highlights` and event descriptions. "Planned a 3-day camp
-for 120 juniors" tells a reader far more than "helped with camp".
+**The first event is special.** Its photo also opens the Involvements section at
+full-screen size before shrinking into its own card. Whatever you put first in
+`involvements.ts`, the opener follows — choose a picture that works both huge
+and small.
 
 ### Photos
 
-Every event image is currently an Unsplash placeholder. Drop your own files into
-`public/photos/`, then swap the URL:
+Photos live in `src/assets/photos/` so Astro can optimise them — it serves
+WebP at several sizes and lazy-loads everything except the hero portrait.
+
+To use a new one:
+
+1. Put the file in `src/assets/photos/`, named in lowercase with hyphens
+   (no spaces or `&`)
+2. Import it at the top of the data file:
+   `import myEvent from '../assets/photos/my-event.jpg';`
+3. Use it as `image: myEvent`, with an `imageAlt` describing what is in it
+
+Aim for about 1600px on the long edge. Cards crop to 4:5, so keep the subject
+near the middle.
+
+Projects currently use generated placeholders from `src/assets/placeholders/`.
+Delete a placeholder JPEG once nothing imports it.
+
+Several photos show other people. If this repo is public, so are their faces,
+and git history keeps them even after a file is deleted.
+
+### Contact
+
+Contact links are `socialLinks` in `site.ts`. An entry with an `href` becomes a
+link; an entry without one is shown as plain text.
+
+WhatsApp is plain text on purpose: WhatsApp usernames have no documented link
+format. To make it clickable, add a `wa.me` link with your number:
 
 ```ts
-image: '/photos/orientation-camp.jpg',
-imageAlt: 'Briefing the orientation groups in the atrium',
+{ label: 'WhatsApp', handle: 'zxyden', href: 'https://wa.me/65XXXXXXXX' },
 ```
 
-Plate shapes cycle through a table in `InvolvementGroup.astro` — tall, square,
-landscape and panoramic — so a mix of crops looks intentional. Aim for ~1600px wide and keep
-each file under about 500KB. The About portrait wants something closer to 4:5.
+The contact form does not send anywhere yet, and says so rather than
+pretending to. Set `FORM_ENDPOINT` at the top of
+`src/components/ContactForm.tsx` to a Formspree, Basin or Netlify Forms URL to
+switch it on.
 
-### Contact form
+The local-time clock reads `timezone` from `site.ts`, and "Based in" reads
+`location`.
 
-The form does not send anywhere yet, and says so rather than pretending to. Open
-`src/components/ContactForm.tsx` and set `FORM_ENDPOINT` to a form endpoint
-(Formspree, Basin, Netlify Forms, or your own handler) to switch it on. The
-direct email and social links on the Contact page work already.
-
-### Projects — live, but still placeholder
-
-`/projects` is back in the nav and rendering. What it is **not** yet is true:
-every entry in `src/data/projects.ts` is an invented placeholder, down to the
-stock photography. Replace them before this goes anywhere public — a portfolio
-that lists work you did not do is worse than a portfolio with no work on it.
-
-Each entry wants a title, a one-line summary, the year, a link if there is one,
-and an image. Drop screenshots in `public/work/` and point `image` at
-`/work/whatever.jpg`. Delete `comingSoon` once the entry is real.
-
-The carousel shows images and nothing else — no titles, no captions — so the
-"Coming soon" wording is drawn into the placeholder plates themselves by
-`comingSoonPlate()` in `src/data/projects.ts`. It returns an inline SVG data
-URI, which is why those plates cost no request and stay sharp at any size.
-
-The page picks its layout from the entry count: three or more get
-`RoundCarousel.tsx`, fewer get a plain grid. That is a correctness rule, not a
-taste one. The ring's radius divides by `tan(PI / count)`, which is infinite at
-two plates and zero at one, so below three the geometry is undefined. The
-threshold is `useCarousel` at the top of `src/pages/projects.astro`.
-
-For the same reason the page passes `spacing={8}` rather than the component's
-default of `3`: at exactly three plates the default radius works out near 126px
-while the plates are 300px wide, and they intersect.
+---
 
 ## How it's put together
 
-**Design tokens** are defined once in `src/styles/global.css` under `@theme` —
-a black ground (`--color-ground`), a raised panel tone, off-white type, a pure
-white accent, and one tint per involvement chapter. The palette is monochrome
-throughout: there is no hue anywhere in the system, and hierarchy is carried by
-value and weight instead of colour. Changing a value there updates the whole
-site.
+### Page
 
-Because accent is white and type is nearly white, anything sitting *on* a light
-surface has to hover darker rather than toward the accent — see the `solid`
-variant in `ActionLink.astro` and the submit button in `ContactForm.tsx`.
+One page, `src/pages/index.astro`, composing one component per section from
+`src/components/sections/`:
 
-The wash behind everything is a fixed radial gradient painted on `body::before`
-rather than the body background — `background-attachment: fixed` is unreliable
-on iOS, and a fixed layer keeps it steady while the page scrolls over it.
+| Section | Theme | In nav |
+| --- | --- | --- |
+| Hero | dark | — |
+| Statement | light | — |
+| About | dark | ✓ |
+| Involvements | light | ✓ |
+| Experiences | dark | ✓ |
+| Skills | light | ✓ |
+| Projects | dark | ✓ |
+| Contact | light | ✓ |
 
-**The live background** is `src/lib/reflect.ts`: a single-pass WebGL caustic
-field (component by Originkit, shaders unmodified) on one fixed canvas. It
-builds its own element rather than sitting in the markup, so no JavaScript, no
-WebGL, or `prefers-reduced-motion` all mean no canvas at all — those visitors
-get the gradient above, which is why it has to hold the page on its own. Every
-tunable is in the `CONFIG` object at the top of that file.
+Dark and light must alternate — the switch between them is the page's only
+accent. **If you reorder sections, re-check each one's theme**, set by the
+`t-dark` / `t-light` class and `data-theme` on its `<section>`. The nav links
+live in `navItems` in `site.ts`, and each `href` must match a section's `id`.
 
-One naming trap: the ground token is `--color-ground`, not `--color-base`.
-Tailwind already owns `text-base` as a font size, so a colour called `base`
-would lose that collision silently.
+### Design
 
-**Motion** is in `src/lib/animations.ts`, and there is only one entry point:
+All tokens are at the top of `src/styles/global.css`:
 
-- `[data-hero-root]` — the page-load sequence
-- `[data-reveal]` — fades up as it scrolls into view
-- `[data-rule]` — hairline dividers that draw in
-- `[data-track]` — the photo wall, pinned and moved sideways on scroll
-- `[data-split-lines]` — text split into lines and raised into view
+- **Colour:** espresso `#312726`, cream `#fff8ed`, stone `#7a716e`. Each section's
+  `.t-dark` or `.t-light` class sets `--bg`, `--fg`, `--mut`, `--rule` and
+  `--field`, and everything inside reads from those
+- **Type:** Archivo from Google Fonts, used across its width axis — wide and
+  bold for display, slightly wide for reading, narrow and tracked for small
+  labels. The type scale is `--d-xl` down to `--meta`
+- **Hero portrait:** `--portrait-w` sets its size and `--portrait-inset` how far
+  it sits in from the right edge
 
-All of it is skipped when the visitor prefers reduced motion, and the CSS makes
-those elements visible in that case so nothing is ever trapped invisible.
+`--d-xl` is sized so the hero statement fits on one screen with the intro and
+facts. Raising it pushes them below the fold.
 
-### The photo walls
+### Motion
 
-Each wall pins its section and travels the photographs sideways as you scroll
-down. Plates sit at varied heights and float vertically as the wall moves, which
-is what gives the wall depth instead of sliding as one flat sheet. That drift is
-deliberately vertical: drifting plates sideways lets neighbours cross over each
-other as soon as the drift exceeds the gap between them.
+One rule decides which library owns an effect: **if it is tied to scroll
+position, it is GSAP; otherwise it is Framer Motion.**
 
-Two things keep it safe:
+- **GSAP** runs from one module, `src/lib/motion.ts`, with a single entry point,
+  `initMotion()`. Lenis provides the smooth scrolling and drives GSAP's
+  ScrollTrigger through the GSAP ticker, so scrubbed effects stay locked to the
+  smoothed position
+- **Framer Motion** (the `motion` package) is used only inside the two React
+  islands: the mobile nav panel in `Nav.tsx`, and the form feedback in
+  `ContactForm.tsx`
 
-- Scroll distance is read through a function paired with `invalidateOnRefresh`,
-  so a resize or a late-loading font recalculates it instead of leaving the last
-  photo unreachable. A wall whose photos already fit gets no pin at all.
-- The horizontal layout is opt-in CSS, gated behind `html.js`, a
-  `min-width: 768px` query, and `prefers-reduced-motion: no-preference`. Narrow
-  screens, reduced motion, and no-JS all fall back to a plain vertical column, so
-  the photos are never trapped inside an overflow they cannot scroll.
+What `motion.ts` drives:
 
-### Line reveals
+| Hook | Effect |
+| --- | --- |
+| `#hero` | Three layers moving at three rates |
+| `[data-split]` | Headings rise into view line by line |
+| `[data-reveal]` | Fades up on arrival |
+| `[data-count]` | Counters run up to their value |
+| `.blueprint` | The candidature drawing assembles itself |
+| `[data-track]` | Pins a track and moves it sideways |
+| `[data-track-intro]` | The Involvements opener: photo shrinks into the first card |
+| `[data-index-list]` | Experiences rows light up as you scroll |
+| `[data-clock]` | Live clock — runs even with reduced motion |
 
-`[data-split-lines]` text is split with anime.js's `splitText()`, each line
-wrapped in a clipping element so it can be raised into view from behind its own
-edge, then animated with anime.js.
+**Nothing is hidden in CSS.** Every animated starting state is applied by GSAP,
+and only when motion is allowed. With `prefers-reduced-motion`, nothing pins and
+the tracks become vertical stacks — the page at rest is the whole page.
 
-Two details matter:
+### Tracks
 
-- Splitting waits for `document.fonts.ready`. Line breaks depend on the final
-  metrics, and splitting changes element heights — so ScrollTrigger is refreshed
-  afterwards.
-- Cards inside a pinned track are handed that track's tween as
-  `containerAnimation`. Without it ScrollTrigger measures their vertical
-  position and fires every card at once, because horizontally they never move
-  down the page.
+`src/components/TrackSection.astro` renders a pinned horizontal track;
+`TrackCard.astro` renders each card. Involvements and Projects are thin
+wrappers around it.
 
-**React islands** are used only where interaction needs state or physics:
+- A track pins and scrolls sideways only on screens wider than 860px. Below
+  that, the cards stack vertically
+- A track whose cards already fit the screen does not pin — there would be
+  nothing to scroll
+- Passing `intro` gives a track the opening beat Involvements uses. The photo is
+  measured against the first card at runtime, so changing card sizes moves the
+  landing with it
 
-- `Nav.tsx` — the underline springs between links and settles on the current page
-- `ContactForm.tsx` — form state
-- `RoundCarousel.tsx` — the projects ring: 3D transforms driven per frame
+### Experiences
 
-Scroll reveals are deliberately applied on the Astro side of an island boundary,
-never inside one: GSAP animates via inline styles, and React is free to clobber
-those during hydration.
+The index pins only on screens wider than 860px **and** at least 860px tall.
+Fourteen rows will not fit a shorter screen at a readable size, so those get the
+phone behaviour instead: each row lights up as it arrives.
 
-**Fonts** load from Fontshare via `src/layouts/BaseLayout.astro`. Two families:
-Erode, an old-style serif in the Times New Roman mould, for anything you read;
-and Switzer for captions, counters and labels. That serif/grotesque split is
-what gives the page its technical edge.
+### React islands
 
-One gotcha if you add another face: Fontshare silently drops families from
-multi-family URLs (`?f[]=a&f[]=b&f[]=c`) — it returns CSS for some and omits the
-rest, with no error. Use a separate `<link>` per family.
+Only two, both for state rather than decoration:
 
-To self-host instead, download the family and swap the `<link>` for local
-`@font-face` rules.
+- `Nav.tsx` — mobile menu, and switching colour depending on the section beneath it
+- `ContactForm.tsx` — validation and send state; hydrates only when scrolled to
+
+---
+
+## Keeping docs current
+
+After any relevant change, update **both** this README and
+[`HANDOFF.md`](HANDOFF.md) in the same piece of work:
+
+- **README** is the manual: how to run it, where content lives, how it works.
+  Change it whenever those answers change
+- **HANDOFF** is the record: current state, what changed, what failed, what is
+  next. Change it whenever the project's state or history moves
+
+See `CLAUDE.md` for what counts as a relevant change.

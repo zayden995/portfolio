@@ -1,0 +1,14 @@
+---
+import TrackSection from '../TrackSection.astro';
+import { involvements, involvementsTrack, involvementsEyebrow } from '../../data/involvements';
+---
+
+<TrackSection
+  id="involvements"
+  theme="light"
+  heading={involvementsTrack.heading}
+  lede={involvementsTrack.lede}
+  items={involvements}
+  eyebrow={involvementsEyebrow}
+  intro={{ line: involvementsTrack.introLine }}
+/>

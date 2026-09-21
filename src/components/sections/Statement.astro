@@ -1,0 +1,25 @@
+---
+import { statement } from '../../data/about';
+---
+
+<section class="sec t-light" id="statement" data-theme="light">
+  <h2 class="display d-l statement-line" data-split>{statement.sentence}</h2>
+
+  <p class="lede" style="margin-top:clamp(1.5rem,3vw,2.5rem)" data-reveal>
+    {statement.lede}
+  </p>
+
+  <div class="counts">
+    {
+      statement.stats.map((stat) => (
+        <div data-reveal>
+          <span class="count-n" data-count={stat.value} data-suffix={stat.suffix}>
+            {stat.value}
+            {stat.suffix}
+          </span>
+          <span class="count-l meta">{stat.label}</span>
+        </div>
+      ))
+    }
+  </div>
+</section>

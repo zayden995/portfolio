@@ -1,129 +1,109 @@
-import { useState } from 'react';
-import type { SubmitEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 
 /**
- * Where the form posts.
- *
- * Leave this empty and the form stays honest — it tells the visitor it isn't
- * connected and points them at your email instead. Paste in a form endpoint
- * (Formspree, Basin, Netlify Forms, your own handler) and it starts sending.
+ * Set this to a form endpoint (Formspree, Basin, Netlify Forms, or your own
+ * handler) to switch the form on. While it is null the form validates and then
+ * says plainly that nothing was sent, rather than pretending to deliver.
  */
-const FORM_ENDPOINT = '';
+const FORM_ENDPOINT: string | null = null;
 
-type Status = 'idle' | 'sending' | 'sent' | 'error' | 'not-connected';
-
-const FIELD_CLASSES =
-  'w-full border-b border-hairline bg-transparent py-3 text-chalk placeholder:text-slate/60 transition-colors duration-200 focus:border-accent focus:outline-none';
+type Status = 'idle' | 'sending' | 'sent' | 'error';
 
 export default function ContactForm() {
   const [status, setStatus] = useState<Status>('idle');
+  const [note, setNote] = useState('');
+  const reduced = useReducedMotion();
 
-  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function onSubmit(ev: SubmitEvent<HTMLFormElement>) {
+    ev.preventDefault();
+    const form = ev.currentTarget;
+    const data = new FormData(form);
 
-    if (!FORM_ENDPOINT) {
-      setStatus('not-connected');
+    const name = String(data.get('name') ?? '').trim();
+    const email = String(data.get('email') ?? '').trim();
+    const message = String(data.get('message') ?? '').trim();
+
+    if (!name || !email || !message) {
+      setStatus('error');
+      setNote('Fill in your name, email and a message before sending.');
+      return;
+    }
+    if (email.indexOf('@') < 1 || email.lastIndexOf('.') < email.indexOf('@')) {
+      setStatus('error');
+      setNote('That email address is missing an @ or a domain.');
       return;
     }
 
-    // Hold onto the form: React clears `currentTarget` once the handler yields.
-    const form = event.currentTarget;
-    setStatus('sending');
+    if (!FORM_ENDPOINT) {
+      setStatus('sent');
+      setNote('Checks out — but the form is not wired to an endpoint yet, so nothing left your browser. Email me directly for now.');
+      form.reset();
+      return;
+    }
 
+    setStatus('sending');
+    setNote('');
     try {
-      const response = await fetch(FORM_ENDPOINT, {
+      const res = await fetch(FORM_ENDPOINT, {
         method: 'POST',
         headers: { Accept: 'application/json' },
-        body: new FormData(form),
+        body: data,
       });
-
-      if (!response.ok) throw new Error(`Request failed with ${response.status}`);
-
-      form.reset();
+      if (!res.ok) throw new Error(String(res.status));
       setStatus('sent');
+      setNote('Sent. I will get back to you.');
+      form.reset();
     } catch {
       setStatus('error');
+      setNote('That did not send. Email me directly instead.');
     }
   }
 
-  const message: Record<Status, string> = {
-    idle: '',
-    sending: 'Sending…',
-    sent: 'Message sent. I’ll get back to you shortly.',
-    error: 'That didn’t send. Try again, or email me directly.',
-    'not-connected':
-      'This form isn’t connected yet — add your endpoint to FORM_ENDPOINT in src/components/ContactForm.tsx. In the meantime, email works.',
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="max-w-xl">
-      <div className="space-y-8">
-        <div>
-          <label htmlFor="name" className="eyebrow block">
-            Name
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            required
-            autoComplete="name"
-            placeholder="Ada Lovelace"
-            className={`${FIELD_CLASSES} mt-2`}
-          />
-        </div>
+    <form onSubmit={onSubmit} noValidate>
+      <label className="field" htmlFor="cf-name">
+        <span className="meta">Name</span>
+        <input id="cf-name" name="name" type="text" autoComplete="name" required />
+      </label>
 
-        <div>
-          <label htmlFor="email" className="eyebrow block">
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            placeholder="ada@example.com"
-            className={`${FIELD_CLASSES} mt-2`}
-          />
-        </div>
+      <label className="field" htmlFor="cf-email">
+        <span className="meta">Email</span>
+        <input id="cf-email" name="email" type="email" autoComplete="email" required />
+      </label>
 
-        <div>
-          <label htmlFor="message" className="eyebrow block">
-            Message
-          </label>
-          <textarea
-            id="message"
-            name="message"
-            required
-            rows={4}
-            placeholder="What are you working on?"
-            className={`${FIELD_CLASSES} mt-2 resize-y`}
-          />
-        </div>
-      </div>
+      <label className="field" htmlFor="cf-message">
+        <span className="meta">Message</span>
+        <textarea id="cf-message" name="message" rows={4} required />
+      </label>
 
-      <div className="mt-10 flex flex-wrap items-center gap-6">
-        <button
-          type="submit"
-          disabled={status === 'sending'}
-          // Hovers darker for the same reason as ActionLink's solid variant:
-          // white-on-nearly-white is not a visible state change.
-          className="group inline-flex items-center gap-3 bg-chalk px-7 py-3.5 text-sm text-ground transition-colors duration-200 hover:bg-slate disabled:opacity-60"
-        >
-          Send message
-          <span
-            aria-hidden="true"
-            className="transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1"
+      <motion.button
+        className="send"
+        type="submit"
+        disabled={status === 'sending'}
+        whileHover={reduced ? undefined : { opacity: 0.82 }}
+        whileTap={reduced ? undefined : { scale: 0.99 }}
+        transition={{ duration: 0.25, ease: [0.62, 0.05, 0.01, 0.99] }}
+      >
+        {status === 'sending' ? 'Sending…' : 'Send message'}
+      </motion.button>
+
+      <AnimatePresence mode="wait">
+        {note && (
+          <motion.p
+            key={note}
+            className="form-note meta"
+            role="status"
+            aria-live="polite"
+            initial={reduced ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: [0.62, 0.05, 0.01, 0.99] }}
           >
-            &#8594;
-          </span>
-        </button>
-      </div>
-
-      <p aria-live="polite" className="mt-6 min-h-6 text-sm text-slate">
-        {message[status]}
-      </p>
+            {note}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </form>
   );
 }

@@ -1,182 +1,121 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { animated, useSpring } from '@react-spring/web';
-import { navItems } from '../data/site';
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import type { NavItem } from '../data/site';
 
-type NavProps = {
-  /** Current URL path, passed in from Astro so the island knows what is active. */
-  pathname: string;
+interface Props {
   name: string;
-};
-
-function isActive(href: string, pathname: string): boolean {
-  const current = pathname.replace(/\/+$/, '') || '/';
-  return href === '/' ? current === '/' : current.startsWith(href);
+  items: NavItem[];
 }
 
 /**
- * Site navigation.
+ * The only always-on React island on the page.
  *
- * The underline is a single element that springs between links — it follows
- * your pointer and settles back on the current page when you leave. That
- * physics is the reason this is a React island rather than plain markup.
+ * It is here for state, not decoration: the mobile panel needs open/closed,
+ * and the bar needs to know which theme it is currently sitting over. Framer
+ * Motion handles the panel because it is an enter/exit transition, which is
+ * exactly what GSAP is clumsy at and Framer is built for.
+ *
+ * The theme inversion below deliberately ignores prefers-reduced-motion. A
+ * cream bar over a cream section is unreadable, so the swap is legibility
+ * rather than decoration — only its 0.45s CSS transition is motion, and that
+ * is already neutralised by the reduced-motion block in global.css.
  */
-export default function Nav({ pathname, name }: NavProps) {
-  const listRef = useRef<HTMLUListElement>(null);
-  const linkRefs = useRef<Array<HTMLAnchorElement | null>>([]);
-  const hasMeasured = useRef(false);
-
-  const [hovered, setHovered] = useState<number | null>(null);
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const activeIndex = navItems.findIndex((item) => isActive(item.href, pathname));
-  const target = hovered ?? (activeIndex >= 0 ? activeIndex : null);
-
-  const [underline, underlineApi] = useSpring(() => ({
-    x: 0,
-    width: 0,
-    opacity: 0,
-    config: { tension: 320, friction: 30, mass: 0.9 },
-  }));
-
-  const measure = useCallback(() => {
-    if (target === null) {
-      underlineApi.start({ opacity: 0 });
-      return;
-    }
-
-    const link = linkRefs.current[target];
-    if (!link || !listRef.current) return;
-
-    // Skip the slide on the very first paint — it should already be in place.
-    const immediate = !hasMeasured.current;
-    hasMeasured.current = true;
-
-    underlineApi.start({
-      x: link.offsetLeft,
-      width: link.offsetWidth,
-      opacity: 1,
-      immediate: (key) => immediate && key !== 'opacity',
-    });
-  }, [target, underlineApi]);
+export default function Nav({ name, items }: Props) {
+  const [open, setOpen] = useState(false);
+  const [onLight, setOnLight] = useState(false);
+  const reduced = useReducedMotion();
 
   useEffect(() => {
-    measure();
-  }, [measure]);
+    const sections = document.querySelectorAll<HTMLElement>('[data-theme]');
+    if (!sections.length || !('IntersectionObserver' in window)) return;
 
-  useEffect(() => {
-    window.addEventListener('resize', measure);
-    void document.fonts?.ready.then(measure);
-    return () => window.removeEventListener('resize', measure);
-  }, [measure]);
+    /* A one-line band just under the nav bar. Whichever section crosses it
+       owns the bar's colour. */
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            setOnLight((e.target as HTMLElement).dataset.theme === 'light');
+          }
+        });
+      },
+      { rootMargin: '-8% 0px -92% 0px', threshold: 0 },
+    );
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    sections.forEach((s) => io.observe(s));
+    return () => io.disconnect();
   }, []);
 
-  // Close the mobile panel on Escape.
+  /* A locked body would fight Lenis, so the panel stops Lenis itself. */
   useEffect(() => {
-    if (!menuOpen) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
+    document.documentElement.style.overflow = open ? 'hidden' : '';
+    return () => {
+      document.documentElement.style.overflow = '';
     };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [menuOpen]);
+  }, [open]);
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
-        scrolled || menuOpen
-          ? 'border-b border-hairline bg-ground/80 backdrop-blur-md'
-          : 'border-b border-transparent'
-      }`}
-    >
-      <nav aria-label="Main" className="shell flex items-center justify-between py-6">
-        <a
-          href="/"
-          className="font-display text-xl font-medium tracking-tight transition-opacity hover:opacity-60"
-        >
+    <>
+      <nav className={`nav${onLight && !open ? ' on-light' : ''}`} id="nav">
+        <a className="nav-mark" href="#top">
           {name}
         </a>
 
-        {/* Desktop links */}
-        <ul
-          ref={listRef}
-          className="relative hidden items-center gap-10 md:flex"
-          onMouseLeave={() => setHovered(null)}
-        >
-          {navItems.map((item, index) => (
-            <li key={item.href}>
-              <a
-                ref={(node) => {
-                  linkRefs.current[index] = node;
-                }}
-                href={item.href}
-                aria-current={index === activeIndex ? 'page' : undefined}
-                onMouseEnter={() => setHovered(index)}
-                onFocus={() => setHovered(index)}
-                onBlur={() => setHovered(null)}
-                className={`block py-1 text-base transition-colors duration-200 ${
-                  index === activeIndex ? 'text-chalk' : 'text-slate hover:text-chalk'
-                }`}
-              >
-                {item.label}
-              </a>
-            </li>
+        <div className="nav-links">
+          {items.map((item) => (
+            <a key={item.href} href={item.href}>
+              {item.label}
+            </a>
           ))}
+        </div>
 
-          <animated.span
-            aria-hidden="true"
-            style={{
-              transform: underline.x.to((x) => `translate3d(${x}px, 0, 0)`),
-              width: underline.width,
-              opacity: underline.opacity,
-            }}
-            className="absolute bottom-0 left-0 h-px bg-accent"
-          />
-        </ul>
-
-        {/* Mobile toggle */}
         <button
+          className="nav-toggle"
           type="button"
-          onClick={() => setMenuOpen((open) => !open)}
-          aria-expanded={menuOpen}
-          aria-controls="mobile-menu"
-          className="eyebrow md:hidden"
+          aria-expanded={open}
+          aria-controls="nav-panel"
+          onClick={() => setOpen((v) => !v)}
         >
-          {menuOpen ? 'Close' : 'Menu'}
+          {open ? 'Close' : 'Menu'}
         </button>
       </nav>
 
-      <div
-        id="mobile-menu"
-        hidden={!menuOpen}
-        className="border-t border-hairline bg-ground md:hidden"
-      >
-        <ul className="shell flex flex-col py-2">
-          {navItems.map((item, index) => (
-            <li key={item.href}>
-              <a
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="nav-panel"
+            id="nav-panel"
+            initial={reduced ? false : { opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduced ? { opacity: 0 } : { opacity: 0, y: -12 }}
+            transition={{ duration: 0.5, ease: [0.62, 0.05, 0.01, 0.99] }}
+          >
+            {items.map((item, i) => (
+              <motion.a
+                key={item.href}
                 href={item.href}
-                aria-current={index === activeIndex ? 'page' : undefined}
-                onClick={() => setMenuOpen(false)}
-                className={`flex items-center justify-between border-b border-hairline py-4 text-title last:border-b-0 ${
-                  index === activeIndex ? 'text-chalk' : 'text-slate'
-                }`}
+                onClick={() => setOpen(false)}
+                initial={reduced ? false : { opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.6,
+                  delay: reduced ? 0 : 0.08 + i * 0.05,
+                  ease: [0.62, 0.05, 0.01, 0.99],
+                }}
               >
                 {item.label}
-                {index === activeIndex && (
-                  <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
-                )}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </header>
+              </motion.a>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

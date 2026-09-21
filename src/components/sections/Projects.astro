@@ -1,0 +1,13 @@
+---
+import TrackSection from '../TrackSection.astro';
+import { projects, projectsTrack, projectsEyebrow } from '../../data/projects';
+---
+
+<TrackSection
+  id="projects"
+  theme="dark"
+  heading={projectsTrack.heading}
+  lede={projectsTrack.lede}
+  items={projects}
+  eyebrow={projectsEyebrow}
+/>

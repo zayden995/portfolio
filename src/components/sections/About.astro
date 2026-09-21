@@ -1,0 +1,104 @@
+---
+import { about, candidature } from '../../data/about';
+
+/* The drawing is computed, not drawn by hand: the elapsed bar and the NOW
+   marker come from the candidature dates against today, so the figure stays
+   truthful as time passes without anyone editing the SVG. */
+const X0 = 10;
+const X1 = 390;
+const SPAN = X1 - X0;
+
+const start = new Date(candidature.start).getTime();
+const end = new Date(candidature.end).getTime();
+const now = Date.now();
+
+const progress = Math.min(1, Math.max(0, (now - start) / (end - start)));
+const nowX = X0 + SPAN * progress;
+const elapsedW = SPAN * progress;
+const pct = Math.round(progress * 100);
+
+const startYear = new Date(candidature.start).getFullYear();
+const endYear = new Date(candidature.end).getFullYear();
+const years = endYear - startYear;
+/* One interior tick per academic year boundary. */
+const ticks = Array.from({ length: years - 1 }, (_, i) => X0 + (SPAN / years) * (i + 1));
+
+const fmt = (d: string) =>
+  new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase();
+---
+
+<section class="sec t-dark" id="about" data-theme="dark">
+  <h2 class="display d-l" style="max-width:16ch" data-split>{about.heading}</h2>
+
+  <div style="margin-top:clamp(2rem,4vw,3rem);max-width:56ch">
+    {about.bio.map((para) => <p data-reveal style="margin:0 0 1rem">{para}</p>)}
+  </div>
+
+  <div class="pillars">
+    {
+      about.pillars.map((pillar) => (
+        <div class="pillar" data-reveal>
+          <h3 class="display d-s">{pillar.title}</h3>
+          <p>{pillar.body}</p>
+        </div>
+      ))
+    }
+  </div>
+
+  <h3
+    class="display d-m"
+    style="margin-top:clamp(5rem,10vw,9rem);max-width:16ch"
+    data-split
+  >
+    {candidature.heading}
+  </h3>
+
+  <div class="spec-grid">
+    <table class="spec-table">
+      <tbody>
+        {
+          candidature.rows.map((row) => (
+            <tr>
+              <th class="meta">{row.label}</th>
+              <td>{row.value}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+
+    <figure style="margin:0" data-reveal>
+      <svg
+        class="blueprint"
+        viewBox="0 0 400 150"
+        role="img"
+        aria-label={`Candidature drawn to scale: ${fmt(candidature.start)} to ${fmt(candidature.end)}, ${pct} per cent elapsed.`}
+      >
+        <line class="bp-axis" x1={X0} y1="100" x2={X1} y2="100" data-draw></line>
+
+        <line class="bp-line" x1={X0} y1="82" x2={X0} y2="118"></line>
+        {ticks.map((x) => <line class="bp-line" x1={x} y1="88" x2={x} y2="112" />)}
+        <line class="bp-axis" x1={X1} y1="82" x2={X1} y2="118"></line>
+
+        <rect class="bp-fill" x={X0} y="86" width={elapsedW} height="28" data-grow></rect>
+
+        <line class="bp-axis" x1={nowX} y1="60" x2={nowX} y2="128" data-now-line></line>
+        <circle class="bp-now" cx={nowX} cy="100" r="3.5" data-now-dot></circle>
+        <text class="bp-now-text" x={nowX} y="50" text-anchor="middle" data-now-label>NOW</text>
+
+        <text class="bp-text" x={X0} y="136">{fmt(candidature.start)}</text>
+        {
+          ticks.map((x, i) => (
+            <text class="bp-text" x={x} y="136" text-anchor="middle">
+              {`YEAR ${i + 2}`}
+            </text>
+          ))
+        }
+        <text class="bp-text" x={X1} y="136" text-anchor="end">{fmt(candidature.end)}</text>
+      </svg>
+      <figcaption class="meta" style="margin-top:1rem">
+        Candidature drawn to scale · {pct}% elapsed
+      </figcaption>
+    </figure>
+  </div>
+</section>

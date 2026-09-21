@@ -1,17 +1,15 @@
 ---
 import '../styles/global.css';
 import Nav from '../components/Nav.tsx';
-import Footer from '../components/Footer.astro';
-import { site } from '../data/site';
+import { site, navItems } from '../data/site';
 
 interface Props {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
 }
 
-const { title, description } = Astro.props;
-const pathname = Astro.url.pathname;
-const canonical = new URL(pathname, Astro.site);
+const { title = site.title, description = site.description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
@@ -23,55 +21,43 @@ const canonical = new URL(pathname, Astro.site);
     <link rel="canonical" href={canonical} />
     <meta name="generator" content={Astro.generator} />
 
-    <title>{title} — {site.shortName}</title>
+    <title>{title}</title>
     <meta name="description" content={description} />
-    <meta property="og:title" content={`${title} — ${site.shortName}`} />
+    <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#312726" />
 
-    <link rel="preconnect" href="https://api.fontshare.com" />
-    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
-    {/* One link per family — Fontshare silently drops families from
-        multi-family URLs, returning CSS for some and omitting the rest. */}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    {/* Archivo's variable width axis is the whole type system — 125 for
+        display, 112 for reading, 100 for tracked meta. Requesting the wdth
+        axis explicitly is what makes those settings resolve. */}
     <link
       rel="stylesheet"
-      href="https://api.fontshare.com/v2/css?f[]=erode@300,400,500,600,700&amp;display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap"
     />
-    <link
-      rel="stylesheet"
-      href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600&amp;display=swap"
-    />
-
-    {/* Marks that scripting is on, so animated elements may start hidden. */}
-    <script is:inline>
-      document.documentElement.classList.add('js');
-    </script>
   </head>
 
-  <body class="min-h-screen antialiased">
+  <body>
     <a
-      href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[60] focus:rounded focus:bg-chalk focus:px-4 focus:py-2 focus:text-sm focus:text-ground"
+      href="#hero"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[60] focus:bg-cream focus:px-4 focus:py-2 focus:text-espresso"
     >
       Skip to content
     </a>
 
-    <Nav client:load pathname={pathname} name={site.name} />
+    <Nav client:load name={site.name} items={navItems} />
 
-    <main id="main">
+    <main id="top">
       <slot />
     </main>
 
-    <Footer />
-
     <script>
-      import { initAnimations } from '../lib/animations';
-      import { initReflect } from '../lib/reflect';
-
-      initAnimations();
-      initReflect();
+      import { initMotion } from '../lib/motion';
+      initMotion();
     </script>
   </body>
 </html>

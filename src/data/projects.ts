@@ -1,88 +1,64 @@
 /**
- * Projects.
+ * The Projects section — the horizontal track of technical work.
  *
- * Nothing real is listed yet, and the three entries below say so on their face
- * rather than pretending otherwise. That is deliberate: a portfolio listing
- * work that does not exist is worse than one that admits the section is still
- * being filled.
- *
- * To add a real project, replace an entry: give it a title, a one-line summary,
- * the year, a link if there is one, and an image. Drop screenshots in
- * `public/work/` and point `image` at `/work/whatever.jpg`. Delete
- * `comingSoon` once it is genuinely there.
- *
- * Count matters here. `src/pages/projects.astro` shows the ring carousel at
- * three or more and a grid below that, because the ring's geometry is
- * undefined at one and two — see the note in `RoundCarousel.tsx`.
+ * Same shape as involvements.ts, rendered by the same component. The images
+ * here are generated placeholders; when you write a real entry, drop a
+ * screenshot into src/assets/photos/ and import it in place of the placeholder.
+ * Delete a placeholder jpg once nothing imports it.
  */
 
-export type Project = {
-  /** Used in the URL and as the React list key. */
-  slug: string;
-  title: string;
-  /** One line. What it is, in plain terms. */
-  summary: string;
-  year: string;
-  /** Where the card points. Omit while there is nowhere to go. */
-  href?: string;
-  /** A path under `public/`, a full URL, or a generated placeholder. */
-  image: string;
-  imageAlt: string;
-  /** True until there is real work behind the entry. */
-  comingSoon?: boolean;
-};
+import type { TrackItem } from './types';
 
-/**
- * A placeholder plate, drawn rather than fetched.
- *
- * The carousel takes images and nothing else — no titles, no captions — so a
- * "coming soon" label has to be part of the picture. An inline SVG keeps it in
- * the site's palette, costs no request, and stays sharp at any plate size.
- * Fonts cannot be loaded inside a data URI, so this asks for a system
- * grotesque rather than Switzer.
- */
-function comingSoonPlate(index: number): string {
-  const label = String(index).padStart(2, '0');
-  const svg = [
-    '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">',
-    '<rect width="800" height="800" fill="#0e0e0e"/>',
-    '<rect x="10" y="10" width="780" height="780" fill="none" stroke="#262626" stroke-width="2"/>',
-    // Nudged left of centre: letter-spacing adds a trailing gap that
-    // text-anchor="middle" counts as part of the string.
-    `<text x="396" y="392" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,sans-serif" font-size="36" letter-spacing="8" fill="#ededed">COMING SOON</text>`,
-    `<text x="398" y="450" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,sans-serif" font-size="20" letter-spacing="5" fill="#8a8a8a">${label}</text>`,
-    '</svg>',
-  ].join('');
+import project01 from '../assets/placeholders/project-01.jpg';
+import project02 from '../assets/placeholders/project-02.jpg';
+import project03 from '../assets/placeholders/project-03.jpg';
 
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
-}
+export const projectsTrack = {
+  heading: 'Things I have built.',
+  lede: 'Coursework and side projects. Every entry below is a placeholder awaiting real content.',
+} as const;
 
-export const projects: Project[] = [
+/** The eyebrow printed at the top of every card in this track. */
+export const projectsEyebrow = 'Project';
+
+export const projects: TrackItem[] = [
   {
-    slug: 'coming-soon-01',
-    title: 'Coming soon',
-    summary: 'Work from the Applied AI & Data Analytics track will land here.',
-    year: '2026',
-    image: comingSoonPlate(1),
-    imageAlt: 'Placeholder plate reading “Coming soon”, numbered 01.',
-    comingSoon: true,
+    name: '[PROJECT 1]',
+    blurb:
+      '[One or two sentences on what this project is and the problem it solves. Keep it to about thirty words — the card is narrow.]',
+    image: project01,
+    imageAlt: '[Describe the screenshot or visual for project 1]',
+    specs: [
+      { label: 'Role', value: '[Solo / team of 4]' },
+      { label: 'Stack', value: '[Python, Pandas, scikit-learn]' },
+      { label: 'Year', value: '[2026]' },
+      { label: 'Outcome', value: '[What shipped, or what it scored]' },
+    ],
   },
   {
-    slug: 'coming-soon-02',
-    title: 'Coming soon',
-    summary: 'Work from the Applied AI & Data Analytics track will land here.',
-    year: '2026',
-    image: comingSoonPlate(2),
-    imageAlt: 'Placeholder plate reading “Coming soon”, numbered 02.',
-    comingSoon: true,
+    name: '[PROJECT 2]',
+    blurb:
+      '[One or two sentences on what this project is and the problem it solves. Keep it to about thirty words — the card is narrow.]',
+    image: project02,
+    imageAlt: '[Describe the screenshot or visual for project 2]',
+    specs: [
+      { label: 'Role', value: '[Your role]' },
+      { label: 'Stack', value: '[Tools used]' },
+      { label: 'Year', value: '[2026]' },
+      { label: 'Outcome', value: '[What shipped]' },
+    ],
   },
   {
-    slug: 'coming-soon-03',
-    title: 'Coming soon',
-    summary: 'Work from the Applied AI & Data Analytics track will land here.',
-    year: '2026',
-    image: comingSoonPlate(3),
-    imageAlt: 'Placeholder plate reading “Coming soon”, numbered 03.',
-    comingSoon: true,
+    name: '[PROJECT 3]',
+    blurb:
+      '[One or two sentences on what this project is and the problem it solves. Keep it to about thirty words — the card is narrow.]',
+    image: project03,
+    imageAlt: '[Describe the screenshot or visual for project 3]',
+    specs: [
+      { label: 'Role', value: '[Your role]' },
+      { label: 'Stack', value: '[Tools used]' },
+      { label: 'Year', value: '[2026]' },
+      { label: 'Outcome', value: '[What shipped]' },
+    ],
   },
 ];

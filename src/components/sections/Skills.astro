@@ -1,0 +1,38 @@
+---
+import { Image } from 'astro:assets';
+import { skills } from '../../data/about';
+
+import committee from '../../assets/photos/foc-committee.jpg';
+import emcee from '../../assets/photos/industry-connect-emcees-2.jpg';
+import event from '../../assets/photos/industry-connect.jpg';
+import drawing from '../../assets/photos/foc-drawing.jpg';
+
+/* Keyed rather than imported per card so the data file stays free of import
+   statements — a card picks its picture with a plain string. */
+const images = { committee, emcee, event, drawing };
+---
+
+<section class="sec t-light" id="skills" data-theme="light">
+  <h2 class="display d-l" style="max-width:14ch" data-split>{skills.heading}</h2>
+  <p class="lede" style="margin-top:clamp(1rem,2vw,1.5rem)" data-reveal>{skills.lede}</p>
+
+  <div class="skill-grid">
+    {
+      skills.cards.map((card) => (
+        <article class="skill-card" data-reveal>
+          <div class="skill-card-img">
+            <Image
+              src={images[card.image]}
+              alt={card.imageAlt}
+              widths={[420, 700, 1100]}
+              sizes="(max-width: 860px) 100vw, 45vw"
+              loading="lazy"
+            />
+          </div>
+          <h3 class="display d-s">{card.title}</h3>
+          <p>{card.body}</p>
+        </article>
+      ))
+    }
+  </div>
+</section>
