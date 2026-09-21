@@ -1,5 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#16171A" />
-  <path d="M9 22V10h3.4l6.2 7.6V10H22v12h-3.4L12.4 14.4V22H9Z" fill="#F5F5F3" />
-  <circle cx="24.5" cy="11.5" r="2.5" fill="#2F27E0" />
+  <!-- Espresso and cream, the same two colours the site is built from. The
+       previous mark was an N in the old deep-blue palette's #16171A/#2F27E0,
+       which matched nothing on the page any more. -->
+  <rect width="32" height="32" rx="6" fill="#312726" />
+  <path d="M9 10h14v3.1l-8.6 5.8H23V22H9v-3.1l8.6-5.8H9z" fill="#fff8ed" />
 </svg>

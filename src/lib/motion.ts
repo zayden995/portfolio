@@ -321,21 +321,6 @@ export function initMotion() {
           scrub: 0.8,
           invalidateOnRefresh: true,
           anticipatePin: 1,
-          /* The nav sits on espresso while the overlay covers the top of the
-             screen, even though this section is a light one. */
-          onUpdate: (self) => {
-            document.documentElement.classList.toggle(
-              'intro-dark',
-              self.progress < introFrac * 0.78,
-            );
-          },
-          /* onUpdate only fires once progress moves, so entering the pin has
-             to set the state too or the nav is espresso-on-espresso for a
-             frame. */
-          onEnter: () => document.documentElement.classList.add('intro-dark'),
-          onEnterBack: () => document.documentElement.classList.add('intro-dark'),
-          onLeave: () => document.documentElement.classList.remove('intro-dark'),
-          onLeaveBack: () => document.documentElement.classList.remove('intro-dark'),
         },
       });
 

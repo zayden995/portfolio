@@ -44,8 +44,13 @@ grep -rn "\[" src/data/
 | `src/data/experiences.ts` | The full list of committees, organisations and events |
 | `src/data/types.ts` | The shape of a card. No content — leave it alone unless the card changes |
 
-Before deploying, set your real domain as `site` in `astro.config.mjs`. It is
-still `https://example.com`, which makes canonical URLs and share previews wrong.
+The site is deployed on Vercel at https://zaydenchua-portfolio.vercel.app.
+`site` in `astro.config.mjs` is set to that domain — it powers canonical URLs
+and `og:url`, so change it there if the domain ever changes.
+
+**Vercel redeploys on push, not on commit.** A push to `main` builds and
+replaces the live site; a push to any other branch gets its own preview URL and
+leaves production alone.
 
 ### Events and projects
 
@@ -78,6 +83,11 @@ full-screen size before shrinking into its own card. Whatever you put first in
 `involvements.ts`, the opener follows — choose a picture that works both huge
 and small.
 
+The opener is cream, and the photo is washed pale under a cream scrim so the
+heading reads over it. A very light or very busy picture can still fight the
+type: the scrim is `.track-intro-media::after` in `global.css`, and raising its
+alpha is the one knob to turn.
+
 ### Photos
 
 Photos live in `src/assets/photos/` so Astro can optimise them — it serves
@@ -94,8 +104,11 @@ To use a new one:
 Aim for about 1600px on the long edge. Cards crop to 4:5, so keep the subject
 near the middle.
 
-Projects currently use generated placeholders from `src/assets/placeholders/`.
-Delete a placeholder JPEG once nothing imports it.
+Projects is currently **hidden from the page** — its three entries are still
+placeholders, so the section is not rendered and not in the nav. The data and
+its generated images in `src/assets/placeholders/` are untouched, waiting.
+To bring it back, see the comment in `src/pages/index.astro`. Delete a
+placeholder JPEG once nothing imports it.
 
 Several photos show other people. If this repo is public, so are their faces,
 and git history keeps them even after a file is deleted.
@@ -105,17 +118,26 @@ and git history keeps them even after a file is deleted.
 Contact links are `socialLinks` in `site.ts`. An entry with an `href` becomes a
 link; an entry without one is shown as plain text.
 
-WhatsApp is plain text on purpose: WhatsApp usernames have no documented link
-format. To make it clickable, add a `wa.me` link with your number:
+**WhatsApp is commented out** in `socialLinks`, waiting on WhatsApp's username
+rollout. `wa.me/<username>` has been the documented format since July 2026 and
+needs no phone number, but resolution landed region by region and was still
+completing in September 2026, so the link could fail to open a chat for some
+visitors.
+
+To bring it back, uncomment the entry in `site.ts` once a tap on
+`https://wa.me/zxyden` opens a chat from a phone:
 
 ```ts
-{ label: 'WhatsApp', handle: 'zxyden', href: 'https://wa.me/65XXXXXXXX' },
+{ label: 'WhatsApp', handle: 'zxyden', href: 'https://wa.me/zxyden' },
 ```
 
-The contact form does not send anywhere yet, and says so rather than
-pretending to. Set `FORM_ENDPOINT` at the top of
-`src/components/ContactForm.tsx` to a Formspree, Basin or Netlify Forms URL to
-switch it on.
+Nothing else changes — an entry with an `href` renders as a link on its own.
+
+The contact form posts to Formspree. The endpoint is `FORM_ENDPOINT` at the top
+of `src/components/ContactForm.tsx`; submissions go as FormData with an
+`Accept: application/json` header. Setting it back to `null` turns the form off
+again — it then validates and says plainly that nothing was sent, rather than
+pretending to deliver.
 
 The local-time clock reads `timezone` from `site.ts`, and "Based in" reads
 `location`.
@@ -137,8 +159,11 @@ One page, `src/pages/index.astro`, composing one component per section from
 | Involvements | light | ✓ |
 | Experiences | dark | ✓ |
 | Skills | light | ✓ |
-| Projects | dark | ✓ |
-| Contact | light | ✓ |
+| Contact | dark | ✓ |
+
+Projects (dark) sits between Skills and Contact when it is enabled. While it is
+hidden, Contact takes the dark slot instead — otherwise Skills and Contact would
+both be light and the boundary between them would disappear.
 
 Dark and light must alternate — the switch between them is the page's only
 accent. **If you reorder sections, re-check each one's theme**, set by the

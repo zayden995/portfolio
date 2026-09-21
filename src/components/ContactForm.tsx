@@ -2,11 +2,12 @@ import { useState, type SubmitEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 
 /**
- * Set this to a form endpoint (Formspree, Basin, Netlify Forms, or your own
- * handler) to switch the form on. While it is null the form validates and then
- * says plainly that nothing was sent, rather than pretending to deliver.
+ * The form endpoint. Submissions POST here as FormData with an
+ * `Accept: application/json` header, which is what Formspree expects.
+ * Setting this back to null makes the form validate and then say plainly that
+ * nothing was sent, rather than pretending to deliver.
  */
-const FORM_ENDPOINT: string | null = null;
+const FORM_ENDPOINT: string | null = 'https://formspree.io/f/mvkgazqy';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
 

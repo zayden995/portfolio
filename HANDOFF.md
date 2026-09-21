@@ -27,30 +27,39 @@ photography carrying the page, and slow, settled scroll-driven motion.
 
 ## Current state
 
-**Working, uncommitted, on branch `cinematic-rebuild`.** `main` is untouched.
+**Live, one commit behind.** The rebuild (`c995dda`) is on `origin/main` and
+deployed. A second commit — the domain, the contact form, hiding Projects, the
+cream opener and the card-image fix — is **committed locally and not yet
+pushed**, so none of it is on the live site until it is.
 
-Build is clean (`astro check`: 0 errors, 0 warnings, 0 hints). Verified in a
-real browser at 1440×900, 1280×720 and 390×844, and with
-`prefers-reduced-motion: reduce`: no console errors, no horizontal overflow,
-nothing stuck invisible, all six nav anchors resolve and scroll.
+Build is clean (`astro check`: 0 errors, 0 warnings, 0 hints).
+
+The rebuild was verified in a real browser at 1440×900, 1280×720 and 390×844,
+and with `prefers-reduced-motion: reduce`: no console errors, no horizontal
+overflow, nothing stuck invisible, all six nav anchors resolve and scroll.
+**The 2026-09-22 changes have not had that full pass.** Zayden confirmed the
+cream opener and the card images look right on desktop; nobody has re-checked
+them at phone width, with reduced motion, or with the contact form actually
+submitting.
 
 ```
-cinematic-rebuild  (branched from main, nothing committed yet)
-main
+main  [ahead of origin/main by 1]
+  (new)    Point the site at its real domain, wire the form, hide Projects
+  c995dda  Rebuild the portfolio as a single cinematic scroll page
   d91fbd1  Rebuild the theme in monochrome, restore Projects, lift type scale
   0477a3a  Rebuild portfolio around student profile and deep blue theme
   2512295  initial portfolio setup
 ```
 
-The entire rebuild is **staged and ready to commit** — 52 paths: 19 new, 13
-modified, 12 deleted and 8 renamed (the photos, moved from `public/photos/` to
-`src/assets/photos/` with slugged names, byte-identical). Nothing is committed
-yet; that commit is the first thing to do before any further work.
+`c995dda` carries the whole rebuild — 52 paths: 19 new, 13 modified, 12 deleted
+and 8 renamed (the photos, moved from `public/photos/` to `src/assets/photos/`
+with slugged names; git recorded all eight at 100% similarity). It sits directly
+on `d91fbd1`, so the merge into `main` was a fast-forward with no conflicts.
 
-`src/lib/reflect.ts` was **deleted** as part of staging: the WebGL water field
-from the previous design, unimported since the rebuild. Its last committed form
-is at `d91fbd1`; the working-tree tweak it carried (pointer interaction off,
-+23/−14) was discarded deliberately and is gone.
+`src/lib/reflect.ts` was **deleted** in that commit: the WebGL water field from
+the previous design, unimported since the rebuild. Its last committed form is at
+`d91fbd1`; the working-tree tweak it carried (pointer interaction off, +23/−14)
+was discarded deliberately and is gone.
 
 ### Stack
 
@@ -80,8 +89,14 @@ One page, `src/pages/index.astro`. Sections in order, with their theme:
 | Involvements | `involvements` | cream | ✓ | Opening photo beat, then the pinned events track |
 | Experiences | `experiences` | espresso | ✓ | Pinned index scrub of 14 entries |
 | Skills | `skills` | cream | ✓ | Four image-and-text cards |
-| Projects | `projects` | espresso | ✓ | Technical work track (placeholders) |
-| Contact | `contact` | cream | ✓ | Form, WhatsApp/email/socials, local time, based in |
+| Contact | `contact` | espresso | ✓ | Form, WhatsApp/email/socials, local time, based in |
+
+**Projects is hidden.** Its three entries are still `[PROJECT n]` placeholders,
+so on 2026-09-22 the section was dropped from `index.astro` and from `navItems`.
+It is a dark section sitting between Skills (light) and Contact, so with it gone
+Contact had to flip cream → espresso to keep the alternation. Restoring Projects
+means flipping Contact back. The comment in `index.astro` says so at the point
+of use.
 
 Themes must alternate. **Reordering sections means re-checking the theme of
 each one** — two adjacent sections of the same theme lose their boundary.
@@ -200,10 +215,17 @@ It took three iterations to get right — see *What failed* for why:
 - Experiences and Skills swapped (themes flipped with them to keep alternation)
 - Local time and location moved from Experiences to Contact; "Where" became
   "Based in", Singapore only; the city list was removed
-- WhatsApp `zxyden` added above email, **deliberately unlinked** — WhatsApp
-  usernames have no documented public link format. `href` is optional on
-  `SocialLink`; add a `wa.me` link with a phone number to make it clickable
+- WhatsApp `zxyden` was added above email, **deliberately unlinked**, because
+  usernames had no documented link format at the time. That changed — WhatsApp
+  documented `wa.me/<username>` in July 2026 — but its regional rollout was
+  still completing in September 2026, so rather than ship a link that might not
+  open a chat, **the entry is commented out in `site.ts`** and the contact list
+  shows email, LinkedIn and GitHub only
 - Contact flipped to cream when Projects landed before it
+- The Involvements opener flipped espresso → cream on 2026-09-22, for a softer
+  hand-off into the cream track. The opening photograph's filter inverted with
+  it (washed pale rather than darkened) and took a cream scrim, so espresso type
+  reads over it whatever the picture. The section itself was always light
 - `README.md` rewritten for the single-page site, and `CLAUDE.md` added with a
   standing rule: this file and the README are updated after every relevant
   change. `CLAUDE.md` also records Zayden's working preferences
@@ -213,6 +235,17 @@ It took three iterations to get right — see *What failed* for why:
 - **A blue palette** read off a photo of trainers (navy / ice / slate, plus a
   blue duotone on all photos). Built fully, then reverted at the client's
   request. The site is back on espresso/cream with untreated photos
+- **A photo carousel for Involvements.** Explored 2026-09-22 and **deferred** —
+  the track stays as it is for now. Three readings were built as a live
+  comparison: https://claude.ai/artifact/2PSeWx985nfGKUD4xZWQaz — (A) the same
+  scroll-driven track with photographs instead of cards, (B) a conventional
+  one-up carousel with arrows and dots, (C) a photograph beside the card's spec
+  table. The finding worth keeping: **only A preserves the opening beat**,
+  because B and C are not driven by scroll position, so the full-bleed photo has
+  nothing to contract onto — and both would move Involvements out of GSAP into a
+  third React island. A and B also dissolve the six-photos-three-events problem,
+  since a repeated photo caption does not read as a duplicate the way a repeated
+  card title does; C does not
 - **A scroll transformation on the hero itself.** Four options were built as a
   live comparison — https://claude.ai/artifact/4LucAUwBpjwgYmdgNq7uMR — then
   dropped. That idea was later applied to the Involvements opener instead
@@ -255,8 +288,36 @@ at every width. **Overrides for `.track-intro` must stay below its definition.**
 **The nav vanished over the dark overlay.** Involvements is a cream section, so
 the nav turned espresso — over an espresso overlay. Fixed with an
 `html.intro-dark` class toggled from the timeline, plus `onEnter`/`onEnterBack`,
-because `onUpdate` only fires once progress moves. The class sits on `<html>`
+because `onUpdate` only fires once progress moves. The class sat on `<html>`
 because React rewrites the nav's own `className` on re-render.
+
+**That mechanism was removed on 2026-09-22**, when the opener itself went cream
+— the nav's own light-section colour is correct over it, so there is nothing to
+counteract. The lesson stands and the code does not: **an overlay that covers
+the nav has to answer for the nav's colour**, and any state the nav reads has to
+live somewhere React will not overwrite. Restore both together if the opener
+ever goes dark again.
+
+**A photo that drifts inside its frame needs overscan.** Each card image is
+translated `xPercent -8..8` by `motion.ts` while the track runs. At `width:100%`
+there was nothing behind it, so the frame's `--field` background showed as a
+strip down one edge — visible on the live site and easy to mistake for a
+misaligned image. `.card-img img` is now `width: 120%; margin-left: -10%`, sized
+so half the overhang exceeds the largest translation (8% of 120% is 9.6% of the
+frame, against 10% of overhang). **Raising the drift means raising the
+overscan.** `.track-intro-media` already did this with `inset: -10% 0`.
+
+**Tailwind's preflight silently cancelled that fix once.** It ships
+`img,video{max-width:100%;height:auto}`, so `width: 120%` on an image is clamped
+straight back to 100%. Specificity never enters into it — `max-width` and
+`width` are different properties, so a more specific selector does not help. The
+rule sat in the built CSS looking correct and did nothing. **Any image meant to
+exceed its container needs `max-width: none` alongside the width.** Check the
+built CSS, not the source, when a rule appears to be ignored.
+
+Note what was *not* wrong: the opener already lands at the card's exact width.
+`landing()` in `motion.ts` measures `.card .card-img`'s live rect rather than
+assuming a size, so card width and landing width cannot drift apart.
 
 **`containerAnimation` needs a tween, not a timeline.** The Involvements track
 had to become one timeline to stay seamless, so it lost the per-card image
@@ -308,32 +369,48 @@ Node for scripted edits.
 
 ## What should be done next
 
-### 1. Commit the rebuild
+### 1. Deployment notes
 
-Everything is staged on `cinematic-rebuild` but uncommitted. Commit before any
-further changes.
+**Settle photo consent first.** Several event photos show other students, and
+pushing puts them on GitHub for good — history keeps them even after a later
+deletion. Check whether `zayden995/portfolio` is public before pushing; that is
+the irreversible step, not the commit.
 
-The `reflect.ts` question this section used to carry is settled — the file is
-deleted and staged as such. Build re-verified after removal: `astro check`
-reports 0 errors, 0 warnings, 0 hints.
+**Vercel redeploys on push, not on commit.** A push to `main` triggers a
+production build; a push to any other branch gets a preview URL instead and
+leaves the live site alone.
+
+**`npm run build` is `astro check && astro build`,** so a type error fails the
+Vercel build and blocks the deploy rather than shipping broken output.
 
 ### 2. Real content
 
-- `src/data/involvements.ts` — six `[EVENT n]` placeholders. The photos are real;
-  replace name, blurb and spec values. The **first** entry's photo is also the
-  opening beat's photo
-- `src/data/projects.ts` — three `[PROJECT n]` placeholders with generated
-  images. Swap in screenshots from `src/assets/photos/` and delete unused
-  placeholder JPEGs
+This is now the only thing standing between the site and finished.
+
+- `src/data/involvements.ts` — six `[EVENT n]` placeholders, **live on the
+  public site**. The photos are real; replace name, blurb and spec values. The
+  **first** entry's photo is also the opening beat's photo
+- `src/data/projects.ts` — three `[PROJECT n]` placeholders. The section is
+  hidden, so this is not public, but it stays hidden until the copy exists.
+  Swap in screenshots from `src/assets/photos/` and delete unused placeholders
+
+**The six photographs cover three events**: Freshman Orientation Camp (three
+frames), Industry Connect (two) and Hearts & Homies (one). Filling in the real
+names as they stand would put three cards titled "Freshman Orientation Camp"
+side by side in one track. Decide the structure before writing the copy.
 
 ### 3. Before deploying
 
-- **Set the real domain** in `astro.config.mjs` — `site:` is still
-  `https://example.com`, so canonical URLs and OG tags are wrong
-- **Connect the contact form.** Set `FORM_ENDPOINT` in `ContactForm.tsx`
-  (Formspree, Basin, Netlify Forms). Until then it says plainly that nothing
-  was sent
-- **Make WhatsApp clickable**, if wanted — see the note in `site.ts`
+- ~~**Set the real domain**~~ — done 2026-09-22. `site:` is
+  `https://zaydenchua-portfolio.vercel.app`
+- ~~**Connect the contact form**~~ — done 2026-09-22. `FORM_ENDPOINT` points at
+  Formspree (`mvkgazqy`). The existing fetch already sent FormData with an
+  `Accept: application/json` header, which is Formspree's contract, so the
+  constant was the only change. **Not yet tested against a real submission**
+- **Restore WhatsApp** once the username rollout reaches Singapore. Test
+  `https://wa.me/zxyden` from a phone first; if it opens a chat, uncomment the
+  entry in `site.ts` and nothing else needs to change. Zayden asked for it to
+  stay hidden until then
 - **Consent for photos of other people.** Several event photos show other
   students. If the repo is public, those faces are public and git history keeps
   them after deletion

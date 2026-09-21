@@ -559,7 +559,18 @@
   background: var(--field);
 }
 .card-img img {
-  width: 100%;
+  /* Overscan, so the drift in motion.ts has somewhere to go. The photo is
+     translated xPercent -8..8 inside this frame; at width:100% that exposed the
+     frame's --field background down one edge. The image must be wide enough
+     that half its overhang covers the largest translation: 8% of 120% is 9.6%
+     of the frame, against 10% of overhang each side. Same idea as the -10%
+     inset on .track-intro-media. Raising the drift means raising this too. */
+  width: 120%;
+  margin-left: -10%;
+  /* Tailwind's preflight sets `img,video{max-width:100%}`, which silently
+     clamps the 120% above back to 100% — different property, so specificity
+     never enters into it. Without this line the overscan is a no-op. */
+  max-width: none;
   height: 100%;
   object-fit: cover;
   display: block;
@@ -638,8 +649,8 @@
   position: absolute;
   inset: 0;
   z-index: 3;
-  background: var(--color-espresso);
-  color: var(--color-cream);
+  background: var(--color-cream);
+  color: var(--color-espresso);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   align-items: end;
@@ -668,7 +679,20 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  filter: grayscale(0.4) contrast(1.06) brightness(0.62);
+  /* Inverted with the overlay: the photo is washed pale so espresso type reads
+     over it. Contrast is pulled back as well as brightness raised, because
+     brightness alone leaves dark subjects dark and the type fails over them. */
+  filter: grayscale(0.45) contrast(0.86) brightness(1.32);
+}
+/* A cream scrim over the photo, so legibility does not depend on how bright a
+   given photograph happens to be. This is the knob to turn if the type is hard
+   to read against a new opening picture. */
+.track-intro-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(255 248 237 / 0.34);
+  pointer-events: none;
 }
 
 .track-intro-line {
@@ -689,7 +713,7 @@
 }
 .track-intro-head .lede {
   margin-top: clamp(1rem, 2vw, 1.5rem);
-  color: #a2948f;
+  color: var(--color-stone);
 }
 
 @media (max-width: 860px) {
@@ -710,12 +734,10 @@
   }
 }
 
-/* While the overlay covers the top of the screen the nav sits on espresso, so
-   it has to stay cream even though the section it belongs to is a light one.
-   Set on the root element, which React never rewrites. */
-html.intro-dark .nav {
-  color: var(--color-cream);
-}
+/* The opener used to be espresso, which forced the nav cream over it via an
+   html.intro-dark class toggled from the timeline. The overlay is cream now, so
+   the nav's own light-section colour is already correct and that mechanism is
+   gone. Bring both back together if the opener ever goes dark again. */
 
 /* ---------------------------------------------------------------------------
    Skills

@@ -62,3 +62,5 @@ says otherwise in the moment.
   unless he asks
 - **Verify in a real browser before calling it done** — desktop and mobile
   widths, with no console errors. A clean build is not enough
+- **No `Co-Authored-By: Claude` trailer in commit messages.** Write the message
+  as his own. This overrides any default attribution the harness suggests

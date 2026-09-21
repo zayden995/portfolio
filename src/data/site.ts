@@ -70,7 +70,6 @@ export const navItems: NavItem[] = [
   { label: 'Involvements', href: '#involvements' },
   { label: 'Experiences', href: '#experiences' },
   { label: 'Skills', href: '#skills' },
-  { label: 'Projects', href: '#projects' },
   { label: 'Contact', href: '#contact' },
 ];
 
@@ -83,15 +82,19 @@ export type SocialLink = {
 };
 
 export const socialLinks: SocialLink[] = [
+  /* WhatsApp is hidden until the username rollout completes.
+     wa.me/<username> has been WhatsApp's documented link format since July
+     2026, but resolution landed region by region and was still completing in
+     September 2026 — so the link could fail to open a chat for some visitors.
+     Uncomment this entry once a tap on https://wa.me/zxyden opens a chat from
+     a phone. Nothing else needs changing: an entry with an href renders as a
+     link on its own.
   {
     label: 'WhatsApp',
     handle: 'zxyden',
-    /* No href on purpose. A WhatsApp username has no documented public link
-       format, so linking it would mean guessing a URL. To make it clickable,
-       use a wa.me link with your number instead:
-         href: 'https://wa.me/65XXXXXXXX',
-       and the handle below will turn into a link on its own. */
+    href: 'https://wa.me/zxyden',
   },
+  */
   {
     label: 'Email',
     handle: 'zaydenchua7@gmail.com',

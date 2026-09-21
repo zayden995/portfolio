@@ -5,7 +5,7 @@ import { site, socialLinks } from '../../data/site';
 const year = new Date().getFullYear();
 ---
 
-<section class="sec t-light" id="contact" data-theme="light">
+<section class="sec t-dark" id="contact" data-theme="dark">
   <h2 class="display d-l" style="max-width:12ch" data-split>Start a conversation.</h2>
 
   <div class="contact-grid">
@@ -33,14 +33,14 @@ const year = new Date().getFullYear();
 
       <div class="contact-meta">
         <div>
+          <span class="meta">Based in</span>
+          <span class="contact-meta-value">{site.location}</span>
+        </div>
+        <div>
           <span class="meta">Local time</span>
           {/* Rendered blank on the server and filled in by the client, so the
               markup never depends on the build machine's clock or zone. */}
           <span class="contact-meta-value" data-clock data-timezone={site.timezone}>--:--:--</span>
-        </div>
-        <div>
-          <span class="meta">Based in</span>
-          <span class="contact-meta-value">{site.location}</span>
         </div>
       </div>
     </div>
