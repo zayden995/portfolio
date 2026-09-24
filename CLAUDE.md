@@ -64,3 +64,36 @@ says otherwise in the moment.
   widths, with no console errors. A clean build is not enough
 - **No `Co-Authored-By: Claude` trailer in commit messages.** Write the message
   as his own. This overrides any default attribution the harness suggests
+- **Show the full commit message before asking to commit or push.** Every
+  time, follow-up commits included, so he approves the exact text rather than
+  a description of it
+- **Build from an approved design; skip separate plan documents.** Once he has
+  approved a design (usually from a live preview), build it — keep any
+  step-by-step checklist internal rather than writing a plan file for him to
+  review. If you do stop at a gate, say plainly whether the site has changed
+  yet and what the next step produces; process paperwork has confused him
+  before
+- **When he reports something that looks wrong, explain the cause plainly
+  first**, then offer the fix — with the options if the fix is a visual choice
+- **He works in the Claude Code extension for VS Code.** Give instructions in
+  VS Code terms (menus, the Claude Code panel) rather than terminal commands,
+  unless a terminal step is unavoidable
+- **End every session by telling him how to start the next one.** When a
+  session's work is wrapping up — he says he is done, or the planned work is
+  finished:
+  1. **Ask what is on the agenda for next session**, and suggest unfinished
+     work he could pick from — placeholders still open, checks never run,
+     items in `HANDOFF.md`'s *What should be done next*. If he already gave
+     the agenda this session, use it and just offer the suggestions
+  2. Update the next-session list in `HANDOFF.md` to match
+  3. Close with a short "Starting next session" message covering:
+     - Open the `portfolio` folder itself in VS Code (**File → Open
+       Folder…**), not the `Personal` folder above it — only then does this
+       file load on its own
+     - Open the Claude Code panel in that window
+     - **The first message to paste**, in a code block so it copies cleanly,
+       written from the agenda
+     - Anything to prepare beforehand — photos dropped into
+       `src/assets/photos/`, copy written out, decisions to make
+
+  Keep it to a few lines, and make it match `HANDOFF.md`

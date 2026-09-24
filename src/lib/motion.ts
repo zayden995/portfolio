@@ -20,13 +20,14 @@ import Lenis from 'lenis';
 const DESKTOP = '(min-width: 861px)';
 
 /**
- * Experiences pins, which makes anything below the fold unreachable while it is
- * held. Fourteen rows plus the clock will not fit a short laptop screen at a
- * type size worth reading, so the pin is gated on height as well as width and
- * short viewports get the same progressive reveal that phones get.
+ * Involvements holds each commitment's list beside a photo frame, and the list
+ * has to fit the held view with one event's details open. That needs width for
+ * the two columns and height for the list, so the held layout is gated on both;
+ * everything else gets the stacked layout with openers that only grow. Raise
+ * the height if a chapter gains enough events to overflow at this size.
  */
-const CAN_PIN_EXPERIENCES = '(min-width: 861px) and (min-height: 860px)';
-const CANNOT_PIN_EXPERIENCES = '(max-width: 860px), (max-height: 859px)';
+const CAN_STAGE_COMMITMENTS = '(min-width: 861px) and (min-height: 720px)';
+const CANNOT_STAGE_COMMITMENTS = '(max-width: 860px), (max-height: 719px)';
 
 /**
  * The live clock.
@@ -184,6 +185,186 @@ function blueprint(ease: string) {
     .from([nowDot, nowLabel], { autoAlpha: 0, duration: 0.5, ease: 'power2.out', stagger: 0.06 }, 1.1);
 }
 
+/**
+ * Involvements, held. `.is-staged` switches global.css to the held layout;
+ * this drives it. Everything it changes is undone in the returned cleanup, so
+ * crossing the breakpoint returns the stacked layout cleanly.
+ */
+function stageCommitments(section: HTMLElement) {
+  section.classList.add('is-staged');
+
+  /* Screens of scroll per photo and per opener hold. Read from the stylesheet
+     so the heights there and the timings here share one number. */
+  const hold =
+    Number.parseFloat(getComputedStyle(section).getPropertyValue('--commit-hold')) || 0.67;
+
+  /* The opener: one screen to open out as it arrives, then `hold` screens held
+     full while the photo settles. One timeline over the opener's whole height,
+     so the two phases share a single scroll mapping. */
+  section.querySelectorAll<HTMLElement>('[data-cm-open]').forEach((open) => {
+    const frame = open.querySelector('[data-cm-open-frame]');
+    const media = open.querySelector('[data-cm-open-media]');
+    const title = open.querySelector('[data-cm-open-title]');
+    if (!frame || !media || !title) return;
+
+    gsap
+      .timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: {
+          trigger: open,
+          start: 'top bottom',
+          end: 'bottom bottom',
+          scrub: 0.6,
+          invalidateOnRefresh: true,
+        },
+      })
+      .fromTo(frame, { clipPath: 'inset(22% 28% 22% 28%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1 }, 0)
+      .fromTo(media, { scale: 1.25 }, { scale: 1.04, duration: 1 }, 0)
+      .fromTo(title, { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.35 }, 0.65)
+      .to(media, { scale: 1, duration: hold }, 1);
+  });
+
+  const timers: number[] = [];
+
+  /* The run: the view is sticky in CSS, so nothing pins. Progress through the
+     run's height picks the beat — one per photo. An event without a photo has
+     a placeholder frame of its own, so every event gets its own element and
+     every change of event wipes. Two events sharing one element would not:
+     show() only runs when the element changes. */
+  section.querySelectorAll<HTMLElement>('[data-cm-run]').forEach((run, r) => {
+    const short = run.closest<HTMLElement>('[data-cm-chapter]')?.dataset.short ?? '';
+    const bar = run.querySelector<HTMLElement>('[data-cm-bar]');
+    const capL = run.querySelector<HTMLElement>('[data-cm-cap-l]');
+    const capR = run.querySelector<HTMLElement>('[data-cm-cap-r]');
+    const rows = Array.from(run.querySelectorAll<HTMLElement>('[data-cm-row]'));
+    if (!bar || !capL || !capR || !rows.length) return;
+
+    type Beat = { row: number; k: number; n: number; shot: HTMLElement; img: HTMLElement | null };
+    const beats: Beat[] = [];
+    rows.forEach((row, i) => {
+      const shots = Array.from(row.querySelectorAll<HTMLElement>('[data-cm-shot]'));
+      shots.forEach((shot, k) =>
+        beats.push({ row: i, k, n: shots.length, shot, img: shot.querySelector('img') }),
+      );
+    });
+    const ticks = rows.map((row) => Array.from(row.querySelectorAll<HTMLElement>('.cm-ticks i')));
+
+    let beat = -1;
+    let shown: HTMLElement | null = null;
+    let z = 1;
+
+    /* A new photo wipes up over the last. The ones beneath are cleared once it
+       has landed, so scrolling back wipes them in again rather than cutting. */
+    const show = (shot: HTMLElement) => {
+      shot.classList.remove('is-on');
+      void shot.offsetWidth;
+      z += 1;
+      shot.style.zIndex = String(z);
+      shot.classList.add('is-on');
+      const top = z;
+      window.clearTimeout(timers[r]);
+      timers[r] = window.setTimeout(() => {
+        beats.forEach(({ shot: s }) => {
+          if (Number(s.style.zIndex) < top) s.classList.remove('is-on');
+        });
+      }, 1000);
+    };
+
+    const render = (progress: number) => {
+      const f = progress * beats.length;
+      const i = Math.min(beats.length - 1, Math.floor(f));
+      const b = beats[i];
+
+      if (i !== beat) {
+        beat = i;
+        rows.forEach((row, n) => {
+          row.classList.toggle('is-on', n === b.row);
+          row.classList.toggle('is-done', n < b.row);
+        });
+        ticks.forEach((set, n) =>
+          set.forEach((t, k) => t.classList.toggle('is-on', n < b.row || (n === b.row && k <= b.k))),
+        );
+        if (b.shot !== shown) {
+          shown = b.shot;
+          show(b.shot);
+        }
+        const { name = '', year = '' } = rows[b.row].dataset;
+        capL.textContent = `${short} · ${name}`;
+        capR.textContent = b.n > 1 ? `${year} · ${b.k + 1} / ${b.n}` : year;
+      }
+
+      /* The photo settles while it is held, so a long hold never looks frozen,
+         and the line under the frame shows how much of the hold is left. */
+      const sub = Math.min(1, Math.max(0, f - i));
+      if (b.img) gsap.set(b.img, { scale: 1.08 - 0.08 * sub });
+      gsap.set(bar, { scaleX: sub });
+    };
+
+    ScrollTrigger.create({
+      trigger: run,
+      start: 'top top',
+      end: 'bottom bottom',
+      onUpdate: (self) => render(self.progress),
+      onRefresh: (self) => render(self.progress),
+    });
+    render(0);
+  });
+
+  return () => {
+    timers.forEach((t) => window.clearTimeout(t));
+    section.classList.remove('is-staged');
+    section.querySelectorAll('.is-on, .is-done').forEach((el) => el.classList.remove('is-on', 'is-done'));
+    section.querySelectorAll<HTMLElement>('[data-cm-shot]').forEach((s) => {
+      s.style.zIndex = '';
+    });
+    section.querySelectorAll('[data-cm-cap-l], [data-cm-cap-r]').forEach((c) => {
+      c.textContent = '';
+    });
+    /* render() runs on scroll, after this context stopped recording, so its
+       sets are not reverted with the rest and have to be cleared by hand. */
+    gsap.set(section.querySelectorAll('.cm-shot img, [data-cm-bar]'), { clearProps: 'transform' });
+  };
+}
+
+/**
+ * Involvements, stacked — phones, short screens. Nothing holds: each opener
+ * grows open as it arrives, and each photo rises in with the same tween
+ * `data-reveal` uses. That tween is applied here rather than by giving the
+ * photos `data-reveal`, which runs in every mode and would fight the held one.
+ */
+function stackCommitments(section: HTMLElement, ease: string) {
+  section.querySelectorAll<HTMLElement>('[data-cm-open]').forEach((open) => {
+    const frame = open.querySelector('[data-cm-open-frame]');
+    const media = open.querySelector('[data-cm-open-media]');
+    const title = open.querySelector('[data-cm-open-title]');
+    if (!frame || !media || !title) return;
+
+    gsap
+      .timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: { trigger: frame, start: 'top bottom', end: 'top 20%', scrub: 0.6 },
+      })
+      .fromTo(frame, { clipPath: 'inset(14% 18% 14% 18%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1 }, 0)
+      .fromTo(media, { scale: 1.2 }, { scale: 1, duration: 1 }, 0)
+      .fromTo(title, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.35 }, 0.65);
+  });
+
+  /* Placeholder frames are held-layout only and hidden here, so skip them. */
+  section.querySelectorAll<HTMLElement>('[data-cm-shot]:not(.cm-shot-ph)').forEach((shot) => {
+    gsap.fromTo(
+      shot,
+      { y: 26, autoAlpha: 0 },
+      {
+        y: 0,
+        autoAlpha: 1,
+        duration: 0.95,
+        ease,
+        scrollTrigger: { trigger: shot, start: 'top 88%', once: true },
+      },
+    );
+  });
+}
+
 export function initMotion() {
   /* Information, not decoration — these run whatever the motion preference. */
   startClock();
@@ -224,10 +405,6 @@ export function initMotion() {
       const vp = track.closest<HTMLElement>('[data-track-vp]');
       if (!vp) return;
 
-      /* The gutter is a clamp(), so it has to be read off a laid-out element
-         where it has resolved to pixels — parseFloat on the custom property
-         itself returns NaN. One gutter for the left inset the track starts
-         at, one so the last card does not finish flush against the edge. */
       const distance = () => {
         /* The gutter is a clamp(), so it has to be read off a laid-out element
            where it has resolved to pixels — parseFloat on the custom property
@@ -237,86 +414,18 @@ export function initMotion() {
         return Math.max(0, track.scrollWidth - window.innerWidth + gutter);
       };
 
-      const intro = vp.querySelector<HTMLElement>('[data-track-intro]');
+      /* A track short enough to fit the screen has nothing to scroll
+         sideways. Pinning it anyway would hold the viewport still for zero
+         distance — a section that looks stuck. Those sit centred instead. */
+      if (distance() <= 0) return;
 
-      /* --- Tracks without an opening beat --------------------------------- */
-      if (!intro) {
-        /* A track short enough to fit the screen has nothing to scroll
-           sideways. Pinning it anyway would hold the viewport still for zero
-           distance — a section that looks stuck. Those sit centred instead. */
-        if (distance() <= 0) return;
-
-        const tween = gsap.to(track, {
-          x: () => -distance(),
-          ease: 'none',
-          scrollTrigger: {
-            trigger: vp,
-            start: 'top top',
-            end: () => '+=' + distance(),
-            pin: true,
-            scrub: 0.8,
-            invalidateOnRefresh: true,
-            anticipatePin: 1,
-          },
-        });
-
-        /* Each photo drifts inside its frame against the track's direction —
-           what keeps a sideways run from feeling like one rigid sheet. */
-        track.querySelectorAll<HTMLElement>('[data-card-img]').forEach((img) => {
-          const frame = img.parentElement;
-          if (!frame) return;
-          gsap.fromTo(
-            img,
-            { xPercent: -8 },
-            {
-              xPercent: 8,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: frame,
-                containerAnimation: tween,
-                start: 'left right',
-                end: 'right left',
-                scrub: true,
-              },
-            },
-          );
-        });
-        return;
-      }
-
-      /* --- Tracks that open with the picture contracting ------------------- */
-      /* One pin covers both phases, which is the whole point: the overlay and
-         the card it lands on are inside the same pinned viewport, so no amount
-         of scrolling separates them. */
-      const frame = intro.querySelector<HTMLElement>('[data-intro-frame]');
-      const media = intro.querySelector<HTMLElement>('[data-intro-media]');
-      const line = intro.querySelector<HTMLElement>('[data-intro-line]');
-      const head = intro.querySelector<HTMLElement>('[data-intro-head]');
-
-      /* Where the first card's picture sits inside this viewport. Measured, so
-         changing a card width moves the landing with it on the next refresh. */
-      const landing = () => {
-        const img = track.querySelector<HTMLElement>('.card .card-img');
-        if (!img) return null;
-        const i = img.getBoundingClientRect();
-        const box = intro.getBoundingClientRect();
-        return { top: i.top - box.top, left: i.left - box.left, width: i.width, height: i.height };
-      };
-
-      if (!frame || !landing()) return;
-
-      /* One screen of scroll for the contraction, then the sideways run. The
-         split is fixed when the timeline is built; matchMedia rebuilds it on a
-         width change, which is when card sizes actually move. */
-      const introLen = window.innerHeight;
-      const introFrac = introLen / Math.max(1, introLen + distance());
-      const rest = 1 - introFrac;
-
-      const tl = gsap.timeline({
+      const tween = gsap.to(track, {
+        x: () => -distance(),
+        ease: 'none',
         scrollTrigger: {
           trigger: vp,
           start: 'top top',
-          end: () => '+=' + (window.innerHeight + distance()),
+          end: () => '+=' + distance(),
           pin: true,
           scrub: 0.8,
           invalidateOnRefresh: true,
@@ -324,90 +433,36 @@ export function initMotion() {
         },
       });
 
-      tl.to(line, { yPercent: -180, autoAlpha: 0, ease: 'none', duration: introFrac * 0.28 }, 0)
-        .fromTo(
-          frame,
-          { top: 0, left: 0, width: () => intro.clientWidth, height: () => intro.clientHeight },
+      /* Each photo drifts inside its frame against the track's direction —
+         what keeps a sideways run from feeling like one rigid sheet. */
+      track.querySelectorAll<HTMLElement>('[data-card-img]').forEach((img) => {
+        const frame = img.parentElement;
+        if (!frame) return;
+        gsap.fromTo(
+          img,
+          { xPercent: -8 },
           {
-            top: () => landing()!.top,
-            left: () => landing()!.left,
-            width: () => landing()!.width,
-            height: () => landing()!.height,
+            xPercent: 8,
             ease: 'none',
-            duration: introFrac * 0.62,
+            scrollTrigger: {
+              trigger: frame,
+              containerAnimation: tween,
+              start: 'left right',
+              end: 'right left',
+              scrub: true,
+            },
           },
-          0,
-        )
-        /* Settles the overscan as the frame closes, so the crop does not appear
-           to slide while the box is shrinking around it. */
-        .fromTo(
-          media,
-          { yPercent: -5 },
-          { yPercent: 0, ease: 'none', duration: introFrac * 0.62 },
-          0,
-        )
-        .fromTo(
-          head,
-          { autoAlpha: 0, y: 44 },
-          { autoAlpha: 1, y: 0, ease: 'none', duration: introFrac * 0.26 },
-          introFrac * 0.32,
-        )
-        /* The dissolve happens only once the picture is exactly on top of the
-           card beneath it, so the photograph itself never moves or changes —
-           what fades is the espresso ground around it and the heading. */
-        .to(intro, { autoAlpha: 0, ease: 'none', duration: introFrac * 0.2 }, introFrac * 0.7)
-        .to(track, { x: () => -distance(), ease: 'none', duration: rest }, introFrac)
-        /* A uniform counter-drift rather than the per-card one: that needs a
-           containerAnimation, which takes a tween and not a timeline. */
-        .fromTo(
-          track.querySelectorAll<HTMLElement>('[data-card-img]'),
-          { xPercent: -5 },
-          { xPercent: 5, ease: 'none', duration: rest },
-          introFrac,
         );
-    });
-  });
-
-  /* --- Experiences: scrub the index, count as it goes --------------------- */
-  mm.add(CAN_PIN_EXPERIENCES, () => {
-    const list = document.querySelector<HTMLElement>('[data-index-list]');
-    const counter = document.querySelector<HTMLElement>('[data-index-count]');
-    const section = document.getElementById('experiences');
-    if (!list || !counter || !section) return;
-
-    const rows = Array.from(list.children) as HTMLElement[];
-
-    ScrollTrigger.create({
-      trigger: section,
-      start: 'top top',
-      end: `+=${rows.length * 110}`,
-      pin: true,
-      scrub: 0.5,
-      onUpdate: (self) => {
-        const i = Math.min(rows.length - 1, Math.floor(self.progress * rows.length));
-        counter.textContent = String(i + 1).padStart(2, '0');
-        rows.forEach((r, n) => r.classList.toggle('is-on', n <= i));
-      },
-    });
-  });
-
-  /* Where Experiences cannot pin, rows light up on their own as they arrive. */
-  mm.add(CANNOT_PIN_EXPERIENCES, () => {
-    const list = document.querySelector<HTMLElement>('[data-index-list]');
-    const counter = document.querySelector<HTMLElement>('[data-index-count]');
-    if (!list || !counter) return;
-
-    (Array.from(list.children) as HTMLElement[]).forEach((row, n) => {
-      ScrollTrigger.create({
-        trigger: row,
-        start: 'top 80%',
-        onEnter: () => {
-          row.classList.add('is-on');
-          counter.textContent = String(n + 1).padStart(2, '0');
-        },
       });
     });
   });
+
+  /* --- Involvements: openers, then the held photo frame ------------------ */
+  const commitments = document.querySelector<HTMLElement>('[data-commitments]');
+  if (commitments) {
+    mm.add(CAN_STAGE_COMMITMENTS, () => stageCommitments(commitments));
+    mm.add(CANNOT_STAGE_COMMITMENTS, () => stackCommitments(commitments, EASE));
+  }
 
   /* Webfonts change line breaks, which changes every split. Re-measure once
      they land, and again after images have settled their heights. */

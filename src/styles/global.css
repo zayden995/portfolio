@@ -512,11 +512,10 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Tracks — Involvements and Projects, pinned horizontal
+   Tracks — Projects (hidden for now), pinned horizontal
    --------------------------------------------------------------------------- */
 /* The side gutter moves off the section and onto its children, so the track
-   viewport spans the full width. That is what lets the opening overlay be
-   genuinely full-bleed instead of inset by the gutter. */
+   viewport spans the full width and the cards can run off the right edge. */
 .track-sec {
   overflow: clip;
   padding-block: 0;
@@ -563,8 +562,8 @@
      translated xPercent -8..8 inside this frame; at width:100% that exposed the
      frame's --field background down one edge. The image must be wide enough
      that half its overhang covers the largest translation: 8% of 120% is 9.6%
-     of the frame, against 10% of overhang each side. Same idea as the -10%
-     inset on .track-intro-media. Raising the drift means raising this too. */
+     of the frame, against 10% of overhang each side. Raising the drift means
+     raising this too. */
   width: 120%;
   margin-left: -10%;
   /* Tailwind's preflight sets `img,video{max-width:100%}`, which silently
@@ -624,8 +623,7 @@
 
 @media (max-width: 860px) {
   /* Nothing pins below this width, so the viewport goes back to being sized
-     by its contents and the track becomes an ordinary vertical stack. The
-     opening overlay stops being an overlay and simply leads the section. */
+     by its contents and the track becomes an ordinary vertical stack. */
   .track-vp {
     height: auto;
     display: block;
@@ -640,104 +638,6 @@
     width: 100%;
   }
 }
-
-/* The opening overlay. It sits inside the pinned track viewport so the
-   picture and the card it becomes are never separated by any scrolling: the
-   frame contracts onto the first card's image and the overlay then dissolves,
-   leaving that card exactly where the picture was. */
-.track-intro {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  background: var(--color-cream);
-  color: var(--color-espresso);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-  align-items: end;
-  gap: clamp(1.5rem, 4vw, 4rem);
-  padding: var(--gutter);
-  padding-block: clamp(6rem, 12vw, 9rem) var(--gutter);
-}
-
-.track-intro-frame {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  overflow: hidden;
-  will-change: top, left, width, height;
-}
-.track-intro-media {
-  position: absolute;
-  inset: -10% 0;
-  will-change: transform;
-}
-.track-intro-media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  /* Inverted with the overlay: the photo is washed pale so espresso type reads
-     over it. Contrast is pulled back as well as brightness raised, because
-     brightness alone leaves dark subjects dark and the type fails over them. */
-  filter: grayscale(0.45) contrast(0.86) brightness(1.32);
-}
-/* A cream scrim over the photo, so legibility does not depend on how bright a
-   given photograph happens to be. This is the knob to turn if the type is hard
-   to read against a new opening picture. */
-.track-intro-media::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgb(255 248 237 / 0.34);
-  pointer-events: none;
-}
-
-.track-intro-line {
-  grid-column: 1;
-  align-self: end;
-  position: relative;
-  z-index: 2;
-  max-width: 18ch;
-}
-.track-intro-head {
-  grid-column: 2;
-  align-self: center;
-  position: relative;
-  z-index: 2;
-}
-.track-intro-head h2 {
-  max-width: 14ch;
-}
-.track-intro-head .lede {
-  margin-top: clamp(1rem, 2vw, 1.5rem);
-  color: var(--color-stone);
-}
-
-@media (max-width: 860px) {
-  /* Nothing pins here, so the overlay stops being an overlay and simply leads
-     the section. Declared after the rules above so it actually wins. */
-  .track-intro {
-    position: relative;
-    inset: auto;
-    grid-template-columns: 1fr;
-    align-content: end;
-    height: 100svh;
-    margin-bottom: clamp(3rem, 8vw, 5rem);
-  }
-  .track-intro-line,
-  .track-intro-head {
-    grid-column: 1;
-    align-self: end;
-  }
-}
-
-/* The opener used to be espresso, which forced the nav cream over it via an
-   html.intro-dark class toggled from the timeline. The overlay is cream now, so
-   the nav's own light-section colour is already correct and that mechanism is
-   gone. Bring both back together if the opener ever goes dark again. */
 
 /* ---------------------------------------------------------------------------
    Skills
@@ -781,63 +681,388 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Reach — the index, and the clock
+   Involvements — commitment openers and the held photo frame
+
+   The markup is the whole section at rest: every event's details open and its
+   photos underneath. Everything that holds, collapses or dims is scoped under
+   .is-staged, which motion.ts adds on desktop screens tall enough to fit a
+   chapter's list. Removing the class returns the stacked layout.
    --------------------------------------------------------------------------- */
-/* Reach pins, so the whole section has to fit one screen — hence the tighter
-   block padding and row rhythm than the other sections use. */
-.index-sec {
-  overflow: clip;
-  padding-block: clamp(2.5rem, 5vw, 4rem);
+.commit-sec {
+  /* Screens of scroll per photo, and for each opener's hold. The one knob for
+     how long the section feels — motion.ts reads it too. */
+  --commit-hold: 0.67;
+  /* Keeps the openers and the frame clear of the fixed nav bar, so the cream
+     nav always sits on espresso rather than on a bright photograph. */
+  --nav-clear: clamp(4.25rem, 6vw, 5.75rem);
+  padding-inline: 0;
+  padding-block: clamp(5rem, 11vw, 11rem) clamp(1rem, 3vw, 3rem);
 }
-.index-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  gap: clamp(2rem, 6vw, 6rem);
-  align-items: start;
+.commit-head {
+  padding-inline: var(--gutter);
+  padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
-.index-count {
-  font-variation-settings: 'wdth' 125, 'wght' 700;
-  letter-spacing: -0.06em;
-  font-size: clamp(2.5rem, 5.5vw, 5.5rem);
-  line-height: 0.85;
-  font-variant-numeric: tabular-nums;
+
+/* A photo that has not been supplied yet. Marked, so it reads as unfinished
+   rather than broken. */
+.cm-ph {
+  position: absolute;
+  inset: 0;
+  padding: clamp(0.8rem, 1.6vw, 1.25rem);
+  background:
+    repeating-linear-gradient(135deg, rgb(255 248 237 / 0.045) 0 10px, transparent 10px 20px),
+    var(--field);
+  outline: 1px dashed var(--rule);
+  outline-offset: -1px;
+}
+.cm-ph {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cm-ph .meta {
+  color: var(--fg);
+}
+.cm-ph .cm-ph-name {
+  color: var(--mut);
+}
+
+/* --- Opener ------------------------------------------------------------- */
+.cm-open {
+  padding-inline: var(--gutter);
+}
+.cm-open-frame {
+  position: relative;
+  height: min(88svh, 62vw);
+  min-height: 22rem;
+  overflow: hidden;
+  background: var(--field);
+}
+.cm-open-media {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.cm-open-media img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
   display: block;
 }
-.index-list {
+/* Only the lower half darkens, which is where the title sits. */
+.cm-open-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgb(49 39 38 / 0.85) 0%,
+    rgb(49 39 38 / 0.25) 45%,
+    rgb(49 39 38 / 0) 70%
+  );
+  pointer-events: none;
+}
+.cm-open-title {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.cm-open-title h3 {
+  max-width: 16ch;
+}
+.cm-open-meta {
+  color: var(--fg);
+}
+.cm-roles {
+  color: var(--fg);
+  opacity: 0.72;
+}
+
+/* --- The event list, as it stands at rest ------------------------------- */
+.cm-run {
+  padding: clamp(2rem, 4vw, 3.5rem) var(--gutter) clamp(4rem, 8vw, 7rem);
+}
+.cm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.cm-rows {
   list-style: none;
   margin: 0;
   padding: 0;
+  border-bottom: 1px solid var(--rule);
 }
-.index-list li {
+.cm-row {
   display: grid;
-  grid-template-columns: 3.5rem 1fr auto;
-  gap: 1rem;
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
+  column-gap: 1rem;
   align-items: baseline;
   border-top: 1px solid var(--rule);
-  padding: clamp(0.4rem, 0.75vw, 0.65rem) 0;
-  opacity: 0.4;
-  transition: opacity 0.4s ease;
+  padding: clamp(0.65rem, 1vw, 0.85rem) 0;
 }
-.index-list li.is-on {
-  opacity: 1;
-}
-.index-name {
+.cm-name {
+  margin: 0;
   font-variation-settings: 'wdth' 118, 'wght' 600;
-  font-size: clamp(0.95rem, 1.25vw, 1.2rem);
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
   letter-spacing: -0.03em;
+  line-height: 1.1;
 }
-
+.cm-ticks {
+  display: none;
+}
+.cm-detail,
+.cm-photos {
+  grid-column: 2 / -1;
+}
+.cm-detail-body {
+  padding-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.cm-blurb {
+  margin: 0;
+  color: var(--mut);
+  font-size: clamp(0.9rem, 1vw, 1rem);
+  max-width: 46ch;
+}
+.cm-specs {
+  margin: 0;
+  max-width: 34rem;
+  border-top: 1px solid var(--rule);
+}
+.cm-specs div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.cm-specs dd {
+  margin: 0;
+  text-align: right;
+  font-variation-settings: 'wdth' 112, 'wght' 600;
+  font-size: clamp(0.82rem, 0.95vw, 0.95rem);
+  letter-spacing: -0.01em;
+}
+.cm-photos {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+  max-width: 48rem;
+}
+/* The placeholder frame for an event without a photo exists for the held
+   frame's wipe. Stacked, there is nothing to show, so it is left out. */
+.cm-photos-ph {
+  display: none;
+}
+.cm-shot {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--field);
+}
+.cm-shot img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+}
+.cm-stage {
+  display: none;
+}
 
 @media (max-width: 860px) {
-  .index-grid {
-    grid-template-columns: 1fr;
+  .cm-open-frame {
+    height: min(78svh, 36rem);
   }
-  .index-list li {
-    grid-template-columns: 2.75rem 1fr;
+  .cm-row {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
   }
-  .index-list li .meta:last-child {
+  .cm-count {
     grid-column: 2;
   }
+}
+
+/* --- Staged: desktop, motion allowed ------------------------------------ */
+/* The opener: one screen to open as it arrives, then a sticky hold. */
+.is-staged .cm-open {
+  height: calc(100svh * (1 + var(--commit-hold)));
+  padding-inline: 0;
+}
+.is-staged .cm-open-view {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  padding: var(--nav-clear) var(--gutter) var(--gutter);
+}
+.is-staged .cm-open-frame {
+  height: 100%;
+  min-height: 0;
+  will-change: clip-path;
+}
+
+/* The run: one screen for the view, plus a hold per photo. --beats is written
+   by Involvements.astro from the data. */
+.is-staged .cm-run {
+  height: calc(100svh * (1 + var(--beats, 1) * var(--commit-hold)));
+  padding: 0;
+}
+.is-staged .cm-view {
+  /* The frame's rectangle. The photos, the placeholders, the progress line
+     and the caption all read these, so none of them can drift apart. */
+  --gap: clamp(2rem, 5vw, 5rem);
+  --fl: 50%;
+  --fr: var(--gutter);
+  --fh: min(62svh, 44vw);
+  --ft: calc(var(--nav-clear) + (100svh - var(--nav-clear) - var(--gutter) - var(--fh) - 2.5rem) / 2);
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: flex;
+  align-items: center;
+  padding: var(--nav-clear) var(--gutter) var(--gutter);
+}
+/* 50% of the content box is the frame's left edge less one gutter, so the
+   list ends one gap short of the frame. */
+.is-staged .cm-list {
+  width: calc(50% - var(--gap));
+}
+
+/* Only the row's text dims. Its photos are laid onto the frame, and dimming
+   them would show the frame through during a wipe. */
+.is-staged .cm-row > :not(.cm-photos) {
+  opacity: 0.3;
+  transition: opacity 0.45s ease;
+}
+.is-staged .cm-row.is-done > :not(.cm-photos) {
+  opacity: 0.55;
+}
+.is-staged .cm-row.is-on > :not(.cm-photos) {
+  opacity: 1;
+}
+.is-staged .cm-ticks {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+.cm-ticks i {
+  display: block;
+  width: 1.4rem;
+  height: 2px;
+  background: var(--rule);
+  transition: background 0.3s ease;
+}
+.cm-ticks i.is-on {
+  background: var(--fg);
+}
+
+/* The details drop open under whichever event is in the frame. */
+.is-staged .cm-detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.7s var(--ease-cinematic);
+}
+.is-staged .cm-row.is-on .cm-detail {
+  grid-template-rows: 1fr;
+}
+.is-staged .cm-detail-in {
+  overflow: hidden;
+  min-height: 0;
+}
+.is-staged .cm-detail-body {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.45s ease,
+    transform 0.6s var(--ease-cinematic);
+}
+.is-staged .cm-row.is-on .cm-detail-body {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.18s;
+}
+
+/* Photos are rendered once, inside their rows, and laid onto the frame here.
+   Their containing block is the sticky .cm-view, so nothing between the view
+   and a photo may be positioned or transformed — the photo would measure
+   itself against that instead. */
+.is-staged .cm-photos {
+  display: block;
+  margin: 0;
+}
+.is-staged .cm-shot {
+  position: absolute;
+  z-index: 1;
+  left: var(--fl);
+  right: var(--fr);
+  top: var(--ft);
+  height: var(--fh);
+  aspect-ratio: auto;
+  background: none;
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 0.95s var(--ease-cinematic);
+}
+.is-staged .cm-shot.is-on {
+  clip-path: inset(0 0 0 0);
+}
+.is-staged .cm-shot img {
+  will-change: transform;
+}
+
+/* No z-index here: the stage only paints the frame's ground, and the photos
+   stack above it by their own z-index. */
+.is-staged .cm-stage {
+  display: block;
+  position: absolute;
+  left: var(--fl);
+  right: var(--fr);
+  top: var(--ft);
+  height: var(--fh);
+  background: var(--field);
+}
+.cm-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.9rem);
+  height: 1px;
+  background: var(--rule);
+}
+.cm-bar i {
+  display: block;
+  height: 100%;
+  background: var(--fg);
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+.cm-cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 1.4rem);
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.cm-cap .meta:first-child {
+  color: var(--fg);
 }
 
 /* ---------------------------------------------------------------------------
@@ -980,8 +1205,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   /* No pinning runs, so the track lays itself out rather than relying on
-     scroll to move it, and the overlay leads the section instead of covering
-     it. The page at rest is the whole page. */
+     scroll to move it. The page at rest is the whole page. */
   .track-vp {
     height: auto;
     display: block;
@@ -994,19 +1218,6 @@
   .card {
     width: 100%;
     max-width: 34rem;
-  }
-  .track-intro {
-    position: relative;
-    inset: auto;
-    grid-template-columns: 1fr;
-    align-content: end;
-    height: 100svh;
-    margin-bottom: clamp(3rem, 8vw, 5rem);
-  }
-  .track-intro-line,
-  .track-intro-head {
-    grid-column: 1;
-    align-self: end;
   }
 
   *,

@@ -23,7 +23,7 @@ export const statement = {
  * Section 3. Bio, the value blocks, and the candidature spec table.
  */
 export const about = {
-  heading: 'The short version.',
+  heading: 'About me.',
   bio: [
     'I am a second-year Diploma in Information Technology student at Singapore Polytechnic, specialising in Applied AI and Data Analytics.',
     'Most of what I have learned about getting things done came from committees rather than classrooms — publicity campaigns that had to fill a room, run sheets that had to survive contact with the day, and thirteen years at the same temple.',

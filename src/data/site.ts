@@ -4,12 +4,11 @@
  * This is the first file to edit. Anything in square brackets is a placeholder —
  * search the project for "[" to find every one of them.
  *
- * The content layer is five files, and nothing editable lives outside them:
+ * The content layer is four files, and nothing editable lives outside them:
  *   site.ts         — you, the nav, the hero        (this file)
  *   about.ts        — statement, bio, pillars, candidature, skills
- *   involvements.ts — the events track
- *   projects.ts     — the technical work track
- *   experiences.ts  — the index list
+ *   involvements.ts — SOCC, SOCA, the temple, and their events
+ *   projects.ts     — the technical work track (hidden for now)
  *
  * types.ts holds the shared card shape; it has no content in it.
  */
@@ -30,7 +29,7 @@ export const site = {
   location: 'Singapore',
   /** IANA zone. Drives the live clock in Reach. */
   timezone: 'Asia/Singapore',
-  email: 'zaydenchua7@gmail.com',
+  email: 'zaydencbx21@gmail.com',
 } as const;
 
 /**
@@ -61,14 +60,13 @@ export type NavItem = {
 };
 
 /**
- * Six anchors. The Statement section is deliberately absent — it is the beat
- * between the hero and About, meant to be scrolled through rather than jumped
- * to. Six is the ceiling before the bar crowds at tablet widths.
+ * The Statement section is deliberately absent — it is the beat after
+ * Involvements, meant to be scrolled through rather than jumped to. Six is the
+ * ceiling before the bar crowds at tablet widths.
  */
 export const navItems: NavItem[] = [
   { label: 'About', href: '#about' },
   { label: 'Involvements', href: '#involvements' },
-  { label: 'Experiences', href: '#experiences' },
   { label: 'Skills', href: '#skills' },
   { label: 'Contact', href: '#contact' },
 ];
@@ -97,8 +95,8 @@ export const socialLinks: SocialLink[] = [
   */
   {
     label: 'Email',
-    handle: 'zaydenchua7@gmail.com',
-    href: 'mailto:zaydenchua7@gmail.com',
+    handle: 'zaydencbx21@gmail.com',
+    href: 'mailto:zaydencbx21@gmail.com',
   },
   {
     label: 'LinkedIn',

@@ -1,7 +1,7 @@
 /**
  * The Projects section — the horizontal track of technical work.
  *
- * Same shape as involvements.ts, rendered by the same component. The images
+ * One TrackItem per card, rendered by TrackSection. The images
  * here are generated placeholders; when you write a real entry, drop a
  * screenshot into src/assets/photos/ and import it in place of the placeholder.
  * Delete a placeholder jpg once nothing imports it.

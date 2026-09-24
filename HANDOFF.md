@@ -1,6 +1,6 @@
 # Handoff — Zayden Chua portfolio
 
-Last updated: 2026-09-22
+Last updated: 2026-09-25
 
 > **Update this file and `README.md` after every relevant change**, in the same
 > task, before calling the work done. `CLAUDE.md` defines what counts as
@@ -16,8 +16,9 @@ Apr 2025 — Apr 2028).
 
 The site exists to show **what he does outside class** — running events and
 publicity for two School of Computing student groups, and volunteering with a
-temple community he has belonged to since 2012. It is not a freelancer
-portfolio and does not advertise availability for work.
+temple community he has belonged to since 2012. Those three are the site's
+spine: the **Involvements** section tells them one by one. It is not a
+freelancer portfolio and does not advertise availability for work.
 
 The current direction is a **single-page, cinematic scroll site modelled on
 jeskojets.com**: dark and light sections inverting, large extended display type,
@@ -27,24 +28,34 @@ photography carrying the page, and slow, settled scroll-driven motion.
 
 ## Current state
 
-**Live, one commit behind.** The rebuild (`c995dda`) is on `origin/main` and
-deployed. A second commit — the domain, the contact form, hiding Projects, the
-cream opener and the card-image fix — is **committed locally and not yet
-pushed**, so none of it is on the live site until it is.
+**Committed and pushed on 2026-09-25** as *Rebuild Involvements around three
+commitments* — the new Involvements section replacing the old track and
+Experiences, the About rename, the reorder and re-theme, and the new contact
+email. A push to `main` triggers Vercel's production deploy at
+https://zaydenchua-portfolio.vercel.app.
 
 Build is clean (`astro check`: 0 errors, 0 warnings, 0 hints).
 
-The rebuild was verified in a real browser at 1440×900, 1280×720 and 390×844,
-and with `prefers-reduced-motion: reduce`: no console errors, no horizontal
-overflow, nothing stuck invisible, all six nav anchors resolve and scroll.
-**The 2026-09-22 changes have not had that full pass.** Zayden confirmed the
-cream opener and the card images look right on desktop; nobody has re-checked
-them at phone width, with reduced motion, or with the contact form actually
-submitting.
+The change was verified in an isolated headless Chrome against the production
+build, at 1440×900, 1280×720 and 390×844 and with `prefers-reduced-motion`:
+
+- No console errors, no horizontal overflow, all four nav anchors land at 0px
+- Held layout at both desktop sizes: wheeling through the section produced all
+  15 photo beats in the data's order, with the right photo, caption and count
+  each time, and a transition into every one of them; the list fitted the view
+  at every sample; photos sat exactly on the frame (0px offset); every opener
+  opened fully and sat below the nav
+- Stacked layout (phone, reduced motion): all 12 events' details open, all 6
+  event photos visible, all 3 opener titles visible, no held frame
+- About, Skills and Contact read correctly in their new themes, including the
+  candidature drawing and the contact form
+
+Still never checked: the contact form actually submitting to Formspree.
 
 ```
-main  [ahead of origin/main by 1]
-  (new)    Point the site at its real domain, wire the form, hide Projects
+main  [pushed to origin/main on 2026-09-25]
+  (latest) Rebuild Involvements around three commitments
+  a7e0958  Point the site at its real domain, wire the form, hide Projects
   c995dda  Rebuild the portfolio as a single cinematic scroll page
   d91fbd1  Rebuild the theme in monochrome, restore Projects, lift type scale
   0477a3a  Rebuild portfolio around student profile and deep blue theme
@@ -84,19 +95,17 @@ One page, `src/pages/index.astro`. Sections in order, with their theme:
 | Section | id | Theme | In nav | Content |
 | --- | --- | --- | --- | --- |
 | Hero | `hero` | espresso | — | Statement, intro, portrait, four facts, scroll cue |
-| Statement | `statement` | cream | — | One sentence, four animated counters |
-| About | `about` | espresso | ✓ | Bio, four pillars, candidature table + blueprint drawing |
-| Involvements | `involvements` | cream | ✓ | Opening photo beat, then the pinned events track |
-| Experiences | `experiences` | espresso | ✓ | Pinned index scrub of 14 entries |
-| Skills | `skills` | cream | ✓ | Four image-and-text cards |
-| Contact | `contact` | espresso | ✓ | Form, WhatsApp/email/socials, local time, based in |
+| About | `about` | cream | About | “About me.” — bio, four pillars, candidature table + blueprint drawing |
+| Involvements | `involvements` | espresso | Involvements | SOCC, SOCA, the temple: group-photo opener, then a held photo frame beside the event list |
+| Statement | `statement` | cream | — | “It is never really about the event.”, four animated counters |
+| Skills | `skills` | espresso | Skills | Four image-and-text cards |
+| Contact | `contact` | cream | Contact | Form, email/socials, local time, based in |
 
 **Projects is hidden.** Its three entries are still `[PROJECT n]` placeholders,
 so on 2026-09-22 the section was dropped from `index.astro` and from `navItems`.
-It is a dark section sitting between Skills (light) and Contact, so with it gone
-Contact had to flip cream → espresso to keep the alternation. Restoring Projects
-means flipping Contact back. The comment in `index.astro` says so at the point
-of use.
+It is a dark section, and it would sit between Skills (now dark) and Contact
+(now light), so restoring it means making Projects light and flipping Contact
+back to dark. The comment in `index.astro` says so at the point of use.
 
 Themes must alternate. **Reordering sections means re-checking the theme of
 each one** — two adjacent sections of the same theme lose their boundary.
@@ -126,23 +135,23 @@ All tokens live at the top of `src/styles/global.css`.
 | --- | --- |
 | `src/data/site.ts` | Name, course, location, timezone, email, hero, nav, social links |
 | `src/data/about.ts` | Statement + counters, bio, pillars, candidature, skills cards |
-| `src/data/involvements.ts` | Events track: heading, lede, intro line, six events |
-| `src/data/projects.ts` | Projects track: heading, lede, three projects |
-| `src/data/experiences.ts` | Heading, lede, the 14-entry index |
-| `src/data/types.ts` | `TrackItem` — the shared card shape. No content |
+| `src/data/involvements.ts` | Three commitments: name, short label, since, roles, group photo, events (name, year, blurb, specs, photos). Its types live in the same file |
+| `src/data/projects.ts` | Projects track (hidden): heading, lede, three projects |
+| `src/data/types.ts` | `TrackItem` — the project card shape. No content |
 
-Adding an event or project is one array entry. Placeholders are in square
-brackets: `grep -rn "\[" src/data/`
+Adding an event, a photo or a project is one array entry. Placeholders are in
+square brackets: `grep -rn "\[" src/data/`
 
 ### Components
 
 | File | Purpose |
 | --- | --- |
-| `src/components/TrackSection.astro` | One pinned horizontal track. Optional `intro` prop adds the opening photo beat |
+| `src/components/sections/Involvements.astro` | Involvements: openers, event rows (details, photos, or a desktop-only `[PHOTO]` placeholder), and the desktop-only stage (frame ground, progress line, caption) |
+| `src/components/TrackSection.astro` | One pinned horizontal track. Its `intro` prop was removed with Involvements |
 | `src/components/TrackCard.astro` | One card: image, eyebrow, name, blurb, spec table |
-| `src/components/sections/*.astro` | One file per section. `Involvements` and `Projects` are thin wrappers around `TrackSection` |
-| `src/components/Nav.tsx` | React island. Six anchors, mobile panel, theme inversion |
-| `src/components/ContactForm.tsx` | React island. Validates; **not wired to an endpoint** |
+| `src/components/sections/*.astro` | One file per section. `Projects` is a thin wrapper around `TrackSection` |
+| `src/components/Nav.tsx` | React island. Four anchors, mobile panel, theme inversion |
+| `src/components/ContactForm.tsx` | React island. Validates and posts to Formspree |
 
 ### Plumbing
 
@@ -156,10 +165,68 @@ brackets: `grep -rn "\[" src/data/`
 | `README.md` | The manual: running, editing content, how the pieces work. Kept current |
 | `CLAUDE.md` | Loaded by every Claude Code session started in this folder. Holds the rule to keep this file and the README current, and Zayden's working preferences under **Working with Zayden (Preferences)** |
 | `docs/superpowers/specs/2026-09-16-cinematic-portfolio-design.md` | Original design spec for the rebuild — now partly out of date |
+| `docs/superpowers/specs/2026-09-25-my-commitments-design.md` | Design spec for the section, as approved while it was called My commitments. A snapshot of the decision; Zayden chose to keep both specs |
 
 ---
 
 ## What changed
+
+### My commitments replaces Involvements and Experiences (2026-09-25)
+
+Zayden asked for the site to be told by organisation: SOCC, SOCA and the
+temple, each with its events, with photos arriving as you scroll. The design
+was settled on live previews before any code changed — all three rounds are
+versions of https://claude.ai/artifact/PDztunwcSdAXSFjXv3wUAv:
+
+1. Three readings of "pictures appear as you scroll": (A) a sticky photo frame
+   beside the list, (B) full-screen group-photo chapter openers with staggered
+   prints, (C) the Experiences index with small pop-in photos. Zayden chose A
+   with B's openers
+2. The same, with a control for scroll per photo. He chose **⅔ of a screen**
+3. Used in place of Involvements, with each event's details dropping open as it
+   is shown. Approved, including the deletions below
+
+What that did to the page:
+
+- **Involvements and Experiences are gone.** Deleted: `Involvements.astro`,
+  `involvements.ts`, `Experiences.astro`, `experiences.ts`; `TrackSection`'s
+  `intro` prop; the opener branch and both Experiences blocks in `motion.ts`;
+  `.track-intro*` and the Reach `.index-*` CSS. All recoverable from `a7e0958`
+- **The Experiences list seeded the new data.** Its 14 entries became roles and
+  events under the three commitments; its photos moved onto the events they
+  show. The *six-photos-three-events* problem is gone with it — a photo now
+  belongs to an event, and an event can have several
+- **"The short version." → "About me."**
+- **Reordered and re-themed:** Hero → About (now cream) → My commitments
+  (espresso) → Statement (moved from 2nd to 4th, stays cream) → Skills (now
+  espresso) → Contact (now cream). Nav: About · Commitments · Skills · Contact
+- **Renamed back to Involvements** the same day, at Zayden's request: heading
+  "Involvements.", nav label Involvements, anchor `#involvements`. The files
+  followed: `commitments.ts` → `involvements.ts`, `Commitments.astro` →
+  `Involvements.astro`, and the heading export is `involvementsSection`. They
+  reuse the deleted files' names, so git shows them as **modified**, not new.
+  The list and its type (`commitments`, `Commitment`), the CSS classes
+  (`.commit-sec`, `.cm-*`), `--commit-hold`, `data-commitments` and the
+  `motion.ts` names keep the commitment naming — each entry still is one
+
+How it is built, and why:
+
+- **The markup is the stacked layout** — details open, photos under each row —
+  and `.is-staged` switches CSS to the held one. That keeps the site's rule that
+  nothing is hidden in CSS: no-JS and reduced motion get the whole section
+- **Held with `position: sticky`, not a GSAP pin.** Progress through each run's
+  height picks the beat; one `ScrollTrigger` per run with `onUpdate`, no pin
+- **Gate: wider than 860px and at least 720px tall**, the height the list needs
+  with one event's details open
+- **Photos are rendered once** and laid onto the frame by CSS variables shared
+  with the frame, caption and progress line
+- **An event with no photo gets its own `[PHOTO]` placeholder frame** in its
+  row, desktop only. It first shared the chapter's group photo instead, which
+  lost the transition between those events — see *What failed*. Zayden chose
+  the placeholder over a repeated group photo
+- **`--commit-hold`** in `global.css` is the one knob; `motion.ts` reads it
+- **Openers start below the nav bar**, so the cream nav never sits on a bright
+  photograph — the lesson from the old opener's nav problem, applied up front
 
 ### From five pages to one
 
@@ -185,12 +252,17 @@ React islands. Lenis drives ScrollTrigger via the GSAP ticker rather than
 running beside it.
 
 What GSAP does: hero parallax (three layers, three rates), SplitText line
-reveals, `data-reveal` entrances, counters, the blueprint draw-on, both pinned
-tracks, the Involvements opening beat, and the Experiences index scrub.
+reveals, `data-reveal` entrances, counters, the blueprint draw-on, the Projects
+track (hidden), and Involvements — the openers and the held frame. Until
+2026-09-25 it also drove the Involvements opening beat and the Experiences
+index scrub.
 
-### The Involvements opening beat
+### The Involvements opening beat — removed 2026-09-25
 
-The section opens on **the first event card's own photograph at full viewport
+**Deleted with Involvements; the last working version is `a7e0958`.** Kept here
+because the lessons below still apply to any "this becomes that" effect.
+
+The section opened on **the first event card's own photograph at full viewport
 size**, with "Planning is the easy half." over it. As the section pins, the
 photo contracts onto the first card's exact rect while the heading rises beside
 it; the overlay then dissolves in place, and the horizontal run begins.
@@ -257,6 +329,30 @@ It took three iterations to get right — see *What failed* for why:
 Real traps. Most cost time and would cost it again.
 
 ### In the site
+
+Several traps below come from the Involvements opener and the Experiences pin,
+both removed on 2026-09-25. The code is gone; the lessons are kept because they
+apply to anything similar.
+
+**Two events sharing one frame element lose the transition between them.**
+The held frame only wipes when the element on top changes. At first every
+photo-less event in a chapter pointed at one shared group-photo element, so
+Movie Night → Shirt Sales → Sustainability Hackathon (and SOCA's first three,
+and all three temple events) changed caption and details but not the picture.
+Zayden spotted it. Fixed by giving each such event its own placeholder frame.
+A browser check now fails if two consecutive beats share an element — it
+reported 6 missing transitions before the fix and 0 after.
+
+**A photo inside a dimmed row dims with it.** In Involvements the event
+photos live inside their rows but are laid onto the frame. Putting the
+inactive-row opacity on the row itself would have dimmed the outgoing photo
+while the next one wiped over it. The dimming targets the row's text children
+instead (`.cm-row > :not(.cm-photos)`).
+
+**Sets made on scroll escape `gsap.matchMedia` cleanup.** A context only records
+what runs while its function executes. The frame's per-beat `gsap.set` calls
+run later, from `onUpdate`, so crossing the breakpoint would leave their
+transforms behind. The cleanup clears them by hand.
 
 **A pinned section that doesn't fit the viewport loses its bottom half.** The
 hero headline, the work cards' spec tables and the Experiences index all
@@ -353,6 +449,17 @@ concatenation.
 **Git Bash has no `$TMPDIR` and no Python.** Use explicit scratch paths, and
 Node for scripted edits.
 
+**`npm i` in a folder with no `package.json` installs into the nearest parent
+that has one** — and `C:\Users\zayde` has one. On 2026-09-25 a scratch install
+of `playwright-core` landed in `C:\Users\zayde\node_modules` that way; it was
+removed by hand (package folder, three `.bin` shims, one entry in
+`node_modules/.package-lock.json`), leaving that folder as it was. Run
+`npm init -y` in a scratch folder before installing anything there.
+
+**Every file here is CRLF** (`core.autocrlf` is true; git stores LF). Scripted
+edits that match multi-line text must normalise to LF first and write CRLF
+back.
+
 ### Carried over from the previous design — still true
 
 - **Isolate any automated browser.** An earlier session's tooling attached to
@@ -369,12 +476,39 @@ Node for scripted edits.
 
 ## What should be done next
 
+### Next session — planned by Zayden on 2026-09-25
+
+1. **Tweak the content** in `src/data/` — the Involvements placeholders listed
+   under *Real content* below, and anything else he wants reworded
+2. **Add photos** — group photos for SOCA and the temple, and photos for the
+   events that have none. See *Photos* in `README.md` for where they go
+3. **Sum up the project** — he intends to wrap the site up soon after. Ask what
+   "sum up" should cover (a final deploy, a final handoff, a write-up) rather
+   than assuming
+
+Also open, suggested to him for when there is time:
+
+- **Send one real message through the contact form** — it has never been
+  tested end to end — and check that Formspree (`mvkgazqy`) delivers to his
+  new address, `zaydencbx21@gmail.com`. That destination is set on
+  formspree.io, not in the code
+- **Projects** — still hidden with `[PROJECT n]` placeholders. Decide whether
+  it comes back before the wrap-up or is dropped for good
+- **WhatsApp** — test `https://wa.me/zxyden` from a phone; if it opens a chat,
+  uncomment the entry in `site.ts`
+- **Photo consent** from the people in the event photos, since the repo is
+  public
+
+`src/data/` is the only place content changes should need. Real photos added
+next session go public on push — the repo is **public**.
+
 ### 1. Deployment notes
 
 **Settle photo consent first.** Several event photos show other students, and
 pushing puts them on GitHub for good — history keeps them even after a later
-deletion. Check whether `zayden995/portfolio` is public before pushing; that is
-the irreversible step, not the commit.
+deletion. `zayden995/portfolio` **is public** (checked 2026-09-25 through the
+GitHub API; `gh` is not installed), so pushing is the irreversible step, not
+the commit.
 
 **Vercel redeploys on push, not on commit.** A push to `main` triggers a
 production build; a push to any other branch gets a preview URL instead and
@@ -387,17 +521,22 @@ Vercel build and blocks the deploy rather than shipping broken output.
 
 This is now the only thing standing between the site and finished.
 
-- `src/data/involvements.ts` — six `[EVENT n]` placeholders, **live on the
-  public site**. The photos are real; replace name, blurb and spec values. The
-  **first** entry's photo is also the opening beat's photo
+- `src/data/involvements.ts` — Zayden will supply these once the site's layout
+  is settled:
+  - every event's `blurb` and its `Role / Scale / Outcome` values
+  - the temple's events: three `[EVENT n]` / `[YEAR]` placeholders
+  - group photos for **SOCA** and **the temple** (currently a marked field)
+  - photos for the nine events without any: Movie Night, Shirt Sales,
+    Sustainability Hackathon, SP Open House, DSTA BrainHack, SPxHP Workshop,
+    and the three temple events
+  - whether `foc-committee` stays as SOCC's group photo — it is the orientation
+    committee, used as the nearest thing to a club group shot
 - `src/data/projects.ts` — three `[PROJECT n]` placeholders. The section is
   hidden, so this is not public, but it stays hidden until the copy exists.
   Swap in screenshots from `src/assets/photos/` and delete unused placeholders
 
-**The six photographs cover three events**: Freshman Orientation Camp (three
-frames), Industry Connect (two) and Hearts & Homies (one). Filling in the real
-names as they stand would put three cards titled "Freshman Orientation Camp"
-side by side in one track. Decide the structure before writing the copy.
+The placeholders go public the moment this change is pushed, as the old
+`[EVENT n]` cards were.
 
 ### 3. Before deploying
 
@@ -425,15 +564,20 @@ side by side in one track. Decide the structure before writing the copy.
 
 ### 5. Things worth watching
 
-- **Scroll held back to back.** The Involvements beat pins for about one
-  viewport plus the track's horizontal distance. If it feels heavy, the intro
-  length is `introLen = window.innerHeight` in `motion.ts`
+- **Involvements is long, and grows with every photo.** At `--commit-hold:
+  0.67` it is about 18 screens of scrolling on desktop: three openers at 1⅔
+  screens each, and each run one screen plus ⅔ per photo (15 beats today).
+  Zayden chose ⅔ from a live preview that showed the total. Lowering the knob
+  shortens everything at once
+- **The held list has to fit.** Sized for five events with three spec rows at
+  1280×720. A commitment with many more events, or longer blurbs, needs the
+  height in `CAN_STAGE_COMMITMENTS` raised
 - **Bundle.** ~463 KB JS uncompressed (~150 KB gzipped). React plus Motion is
   roughly two-thirds of that, for two small islands. Replacing both in vanilla
   would cut it sharply, at the cost of dropping Framer Motion from the stack
-- **No-JS on desktop** shows the Involvements overlay covering its track and
-  the tracks as clipped rows. Mobile and reduced motion both fall back to a
-  full vertical stack correctly; no-JS desktop does not
+- **No-JS on desktop** now shows Involvements stacked, which is complete. The
+  one remaining gap is the Projects track rendering as a clipped row, which
+  only matters once Projects is restored
 
 ---
 

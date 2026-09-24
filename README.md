@@ -27,7 +27,8 @@ For the history of the project, what has been tried, and known traps, see
 ## Making it yours
 
 Everything you would normally edit is in `src/data/`. You should not need to
-open a component to change content, add an event, or add a project.
+open a component to change content, add an event, add a photo, or add a
+project.
 
 Placeholders are in square brackets. Find every one with:
 
@@ -39,10 +40,9 @@ grep -rn "\[" src/data/
 | --- | --- |
 | `src/data/site.ts` | Name, course, location, timezone, email, the hero, nav, contact links |
 | `src/data/about.ts` | The statement and its four counters, bio, pillars, candidature table, skills cards |
-| `src/data/involvements.ts` | The events track: heading, lede, opening line, and each event |
-| `src/data/projects.ts` | The projects track: heading, lede, and each project |
-| `src/data/experiences.ts` | The full list of committees, organisations and events |
-| `src/data/types.ts` | The shape of a card. No content — leave it alone unless the card changes |
+| `src/data/involvements.ts` | Involvements: SOCC, SOCA and the temple — each one's roles, group photo, and events with their details and photos |
+| `src/data/projects.ts` | The projects track (hidden for now): heading, lede, and each project |
+| `src/data/types.ts` | The shape of a project card. No content — leave it alone unless the card changes |
 
 The site is deployed on Vercel at https://zaydenchua-portfolio.vercel.app.
 `site` in `astro.config.mjs` is set to that domain — it powers canonical URLs
@@ -52,41 +52,47 @@ and `og:url`, so change it there if the domain ever changes.
 replaces the live site; a push to any other branch gets its own preview URL and
 leaves production alone.
 
-### Events and projects
+### Involvements: commitments and their events
 
-Both tracks use the same card, so an entry in either file looks like this:
+`involvements.ts` holds three commitments. Each has a name, a short label (used
+in captions), the year it began, the roles held in order, an optional group
+photo, and its events:
 
 ```ts
 {
   name: 'Freshman Orientation Camp',
+  year: '2026',
   blurb: 'About thirty words on what it was and what you actually did.',
-  image: focCommittee,            // imported at the top of the file
-  imageAlt: 'The orientation organising committee',
   specs: [
     { label: 'Role', value: 'Organising committee' },
-    { label: 'Organisation', value: 'School of Computing Club' },
-    { label: 'Year', value: 'AY26/27' },
-    { label: 'Outcome', value: 'Full cohort onboarded over three days' },
+    { label: 'Scale', value: '120 freshmen over three days' },
+    { label: 'Outcome', value: 'Full cohort onboarded' },
+  ],
+  photos: [
+    { src: focEvent, alt: 'Orientation running on the day' },   // imported at the top
+    { src: focDrawing, alt: 'An orientation activity in progress' },
   ],
 },
 ```
 
-- `specs` prints as a table, in order. Events and projects can use different
-  labels — `Scale` for an event, `Stack` for a project. Four rows is what the
-  card is sized for
-- A `Year` row is echoed in the top-right corner of the card automatically
+- **Adding an event** is one entry in a commitment's `events`; **adding a photo**
+  is one entry in an event's `photos`. The section's scroll length grows with
+  the photo count on its own
+- `specs` prints in order under the event's name. Three rows is what the list is
+  sized for — see *Involvements* below before adding many more
+- `photos` show one after another in the frame, in the order given. Until an
+  event has one, the desktop frame shows a marked `[PHOTO]` placeholder named
+  after the event, so it still gets its own transition; the stacked layout
+  shows nothing there
+- `group` opens the commitment full-screen. Leave it `null` until you have one;
+  a marked `[GROUP PHOTO]` field shows in its place
 - Put substance in the blurb. "Planned a three-day camp for 120 juniors" says
   far more than "helped with camp"
 
-**The first event is special.** Its photo also opens the Involvements section at
-full-screen size before shrinking into its own card. Whatever you put first in
-`involvements.ts`, the opener follows — choose a picture that works both huge
-and small.
+### Projects
 
-The opener is cream, and the photo is washed pale under a cream scrim so the
-heading reads over it. A very light or very busy picture can still fight the
-type: the scrim is `.track-intro-media::after` in `global.css`, and raising its
-alpha is the one knob to turn.
+Projects use the card in `types.ts`: `name`, `blurb`, `image`, `imageAlt`, and a
+`specs` table of four rows. A `Year` row is echoed in the card's corner.
 
 ### Photos
 
@@ -99,10 +105,12 @@ To use a new one:
    (no spaces or `&`)
 2. Import it at the top of the data file:
    `import myEvent from '../assets/photos/my-event.jpg';`
-3. Use it as `image: myEvent`, with an `imageAlt` describing what is in it
+3. In `involvements.ts`, add it as `{ src: myEvent, alt: '…' }`, with `alt`
+   describing what is in it. In `projects.ts` it is `image` and `imageAlt`
 
-Aim for about 1600px on the long edge. Cards crop to 4:5, so keep the subject
-near the middle.
+Aim for about 1600px on the long edge. Group photos fill the screen and event
+photos fill a landscape frame, so both crop — keep the subject near the middle.
+Project cards crop to 4:5.
 
 Projects is currently **hidden from the page** — its three entries are still
 placeholders, so the section is not rendered and not in the nav. The data and
@@ -154,16 +162,15 @@ One page, `src/pages/index.astro`, composing one component per section from
 | Section | Theme | In nav |
 | --- | --- | --- |
 | Hero | dark | — |
-| Statement | light | — |
-| About | dark | ✓ |
-| Involvements | light | ✓ |
-| Experiences | dark | ✓ |
-| Skills | light | ✓ |
-| Contact | dark | ✓ |
+| About (“About me.”) | light | ✓ |
+| Involvements | dark | ✓ |
+| Statement (“It is never really about the event.”) | light | — |
+| Skills | dark | ✓ |
+| Contact | light | ✓ |
 
-Projects (dark) sits between Skills and Contact when it is enabled. While it is
-hidden, Contact takes the dark slot instead — otherwise Skills and Contact would
-both be light and the boundary between them would disappear.
+Projects is hidden. Restoring it between Skills and Contact means re-theming:
+it becomes light and Contact goes back to dark. The comment in `index.astro`
+says so at the point of use.
 
 Dark and light must alternate — the switch between them is the page's only
 accent. **If you reorder sections, re-check each one's theme**, set by the
@@ -208,34 +215,61 @@ What `motion.ts` drives:
 | `[data-reveal]` | Fades up on arrival |
 | `[data-count]` | Counters run up to their value |
 | `.blueprint` | The candidature drawing assembles itself |
-| `[data-track]` | Pins a track and moves it sideways |
-| `[data-track-intro]` | The Involvements opener: photo shrinks into the first card |
-| `[data-index-list]` | Experiences rows light up as you scroll |
+| `[data-track]` | Pins a track and moves it sideways (Projects, hidden) |
+| `[data-commitments]` | Group-photo openers grow and hold; the held frame steps through each event's photos |
 | `[data-clock]` | Live clock — runs even with reduced motion |
 
 **Nothing is hidden in CSS.** Every animated starting state is applied by GSAP,
-and only when motion is allowed. With `prefers-reduced-motion`, nothing pins and
-the tracks become vertical stacks — the page at rest is the whole page.
+and only when motion is allowed. With `prefers-reduced-motion`, nothing pins or
+holds, the tracks become vertical stacks, and Involvements shows every
+event's details and photos — the page at rest is the whole page.
 
 ### Tracks
 
 `src/components/TrackSection.astro` renders a pinned horizontal track;
-`TrackCard.astro` renders each card. Involvements and Projects are thin
-wrappers around it.
+`TrackCard.astro` renders each card. Projects is a thin wrapper around it.
 
 - A track pins and scrolls sideways only on screens wider than 860px. Below
   that, the cards stack vertically
 - A track whose cards already fit the screen does not pin — there would be
   nothing to scroll
-- Passing `intro` gives a track the opening beat Involvements uses. The photo is
-  measured against the first card at runtime, so changing card sizes moves the
-  landing with it
 
-### Experiences
+### Involvements
 
-The index pins only on screens wider than 860px **and** at least 860px tall.
-Fourteen rows will not fit a shorter screen at a readable size, so those get the
-phone behaviour instead: each row lights up as it arrives.
+`src/components/sections/Involvements.astro`, driven by `involvements.ts` — the
+section is titled Involvements; the code calls each entry a commitment. Each
+commitment is an **opener** (its group photo, name, start year and roles) and a
+**run** (its events).
+
+The markup is the stacked version: every event with its details open and its
+photos underneath. That is what phones, reduced motion and no-JS get. On
+phones and short screens the openers also grow open as they arrive.
+
+On screens wider than 860px **and** at least 720px tall, `motion.ts` adds
+`.is-staged` and the section holds:
+
+- Each opener grows from a small window to fill the screen, then holds
+- The run holds the event list beside a photo frame. Scrolling steps through
+  the photos; the event being shown lights up and its details drop open, ticks
+  under its name count its photos, and a line under the frame fills as the
+  photo's hold runs out
+- Nothing pins: the held views are CSS `position: sticky`, and scroll progress
+  through each run picks the photo
+
+**One knob:** `--commit-hold` on `.commit-sec` in `global.css` — screens of
+scroll per photo and per opener hold, currently `0.67`. `motion.ts` reads the
+same value.
+
+**The list has to fit the held view** with one event's details open. Five
+events with three spec rows fit at 1280×720. If a commitment grows much longer,
+raise the height in `CAN_STAGE_COMMITMENTS` in `motion.ts` so shorter screens
+get the stacked layout instead.
+
+Event photos are rendered once, inside their rows, and laid onto the frame by
+CSS variables on `.cm-view` — the same variables place the frame, its caption
+and its progress line, so they cannot drift apart. Nothing between `.cm-view`
+and a photo may be positioned or transformed, or the photo would measure itself
+against that instead.
 
 ### React islands
 

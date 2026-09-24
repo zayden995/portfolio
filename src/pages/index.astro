@@ -1,24 +1,23 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/sections/Hero.astro';
-import Statement from '../components/sections/Statement.astro';
 import About from '../components/sections/About.astro';
 import Involvements from '../components/sections/Involvements.astro';
+import Statement from '../components/sections/Statement.astro';
 import Skills from '../components/sections/Skills.astro';
-import Experiences from '../components/sections/Experiences.astro';
 import Contact from '../components/sections/Contact.astro';
 ---
 
 <BaseLayout>
   <Hero />
-  <Statement />
   <About />
   <Involvements />
-  <Experiences />
+  <Statement />
   <Skills />
-  {/* Projects is hidden until it has real content. To restore it: re-add
-      the import and <Projects /> here, flip Contact back to t-light/light,
-      and put Projects back in navItems. It is a dark section, so it belongs
-      between Skills (light) and Contact. */}
+  {/* Projects is hidden until it has real content. Themes must keep
+      alternating, and it sits between Skills (dark) and Contact (light), so
+      restoring it means re-theming two sections: set theme="light" in
+      Projects.astro and flip Contact back to t-dark / data-theme="dark". Then
+      re-add the import here and put Projects back in navItems. */}
   <Contact />
 </BaseLayout>

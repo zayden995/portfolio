@@ -1,5 +1,4 @@
 ---
-import { Image } from 'astro:assets';
 import TrackCard from './TrackCard.astro';
 import type { TrackItem } from '../data/types';
 
@@ -10,63 +9,22 @@ interface Props {
   lede: string;
   items: TrackItem[];
   eyebrow: string;
-  /**
-   * An opening beat. When present, the first item's photograph is shown at
-   * full viewport size and contracts back into its own card as the section
-   * pins — so the heading rides on that overlay instead of scrolling above the
-   * track, and there is no gap between the picture and the card it becomes.
-   */
-  intro?: { line: string };
 }
 
-const { id, theme, heading, lede, items, eyebrow, intro } = Astro.props;
-
-/* The overlay always shows the FIRST card's picture. Taking it from the same
-   array the card comes from is what stops the two drifting apart — swap the
-   first entry and the opener follows it. */
-const first = items[0];
+const { id, theme, heading, lede, items, eyebrow } = Astro.props;
 ---
 
 <section class={`sec t-${theme} track-sec`} data-theme={theme} id={id}>
-  {
-    !intro && (
-      <div class="track-head">
-        <h2 class="display d-l" style="max-width:14ch" data-split>
-          {heading}
-        </h2>
-        <p class="lede" style="margin-top:clamp(1rem,2vw,1.5rem)" data-reveal>
-          {lede}
-        </p>
-      </div>
-    )
-  }
+  <div class="track-head">
+    <h2 class="display d-l" style="max-width:14ch" data-split>
+      {heading}
+    </h2>
+    <p class="lede" style="margin-top:clamp(1rem,2vw,1.5rem)" data-reveal>
+      {lede}
+    </p>
+  </div>
 
   <div class="track-vp" data-track-vp>
-    {
-      intro && first && (
-        <div class="track-intro" data-track-intro>
-          <div class="track-intro-frame" data-intro-frame>
-            <div class="track-intro-media" data-intro-media>
-              <Image
-                src={first.image}
-                alt={first.imageAlt}
-                widths={[800, 1400, 2000]}
-                sizes="100vw"
-                loading="lazy"
-              />
-            </div>
-          </div>
-
-          <p class="display d-m track-intro-line" data-intro-line>{intro.line}</p>
-
-          <div class="track-intro-head" data-intro-head>
-            <h2 class="display d-l">{heading}</h2>
-            <p class="lede">{lede}</p>
-          </div>
-        </div>
-      )
-    }
-
     <div class="track" data-track>
       {items.map((item) => <TrackCard item={item} eyebrow={eyebrow} />)}
     </div>

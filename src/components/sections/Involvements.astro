@@ -1,14 +1,150 @@
 ---
-import TrackSection from '../TrackSection.astro';
-import { involvements, involvementsTrack, involvementsEyebrow } from '../../data/involvements';
+import { Image } from 'astro:assets';
+import { commitments, involvementsSection } from '../../data/involvements';
+
+/* The meta line under the heading is derived, so it stays true as entries are
+   added: the count of commitments, and the earliest year any of them began. */
+const WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+const n = commitments.length;
+const organisations = `${WORDS[n] ?? n} organisation${n === 1 ? '' : 's'}`;
+const earliest = Math.min(...commitments.map((c) => Number.parseInt(c.since, 10)));
+
+const photoCount = (count: number) =>
+  count === 0 ? 'Photo to come' : `${count} photo${count === 1 ? '' : 's'}`;
+
+/* One beat per photo; an event with none still takes one, showing the group
+   photo. The run's scroll length is derived from this in global.css. */
+const beats = (events: (typeof commitments)[number]['events']) =>
+  events.reduce((sum, e) => sum + Math.max(1, e.photos.length), 0);
 ---
 
-<TrackSection
-  id="involvements"
-  theme="light"
-  heading={involvementsTrack.heading}
-  lede={involvementsTrack.lede}
-  items={involvements}
-  eyebrow={involvementsEyebrow}
-  intro={{ line: involvementsTrack.introLine }}
-/>
+<section class="sec t-dark commit-sec" id="involvements" data-theme="dark" data-commitments>
+  <header class="commit-head">
+    <h2 class="display d-l" data-split>{involvementsSection.heading}</h2>
+    <p class="meta" data-reveal>{organisations} · since {earliest}</p>
+  </header>
+
+  {
+    commitments.map((c, ci) => (
+      <article class="cm-chapter" aria-labelledby={`cm-title-${ci}`} data-cm-chapter data-short={c.short}>
+        {/* The opener. On desktop it grows open as it arrives, then holds. */}
+        <div class="cm-open" data-cm-open>
+          <div class="cm-open-view">
+            <div class="cm-open-frame" data-cm-open-frame>
+              <div class="cm-open-media" data-cm-open-media>
+                {c.group ? (
+                  <Image
+                    src={c.group.src}
+                    alt={c.group.alt}
+                    widths={[800, 1400, 2000]}
+                    sizes="100vw"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div class="cm-ph">
+                    <span class="meta">[GROUP PHOTO]</span>
+                  </div>
+                )}
+              </div>
+              <div class="cm-open-title" data-cm-open-title>
+                <p class="meta cm-open-meta">
+                  {c.short} · Since {c.since}
+                </p>
+                <h3 class="display d-m" id={`cm-title-${ci}`}>
+                  {c.name}
+                </h3>
+                <p class="meta cm-roles">{c.roles.join(' → ')}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* The run. On desktop the view holds while the frame steps through
+            the photos; everywhere else it is a plain list. */}
+        <div class="cm-run" data-cm-run style={`--beats:${beats(c.events)}`}>
+          <div class="cm-view">
+            <div class="cm-list">
+              <p class="meta">
+                {c.short} · {c.events.length} event{c.events.length === 1 ? '' : 's'}
+              </p>
+              <ol class="cm-rows">
+                {c.events.map((e) => (
+                  <li class="cm-row" data-cm-row data-name={e.name} data-year={e.year}>
+                    <span class="meta cm-year">{e.year}</span>
+                    <div class="cm-head">
+                      <h4 class="cm-name">{e.name}</h4>
+                      {e.photos.length > 1 && (
+                        <span class="cm-ticks" aria-hidden="true">
+                          {e.photos.map(() => (
+                            <i />
+                          ))}
+                        </span>
+                      )}
+                    </div>
+                    <span class="meta cm-count">{photoCount(e.photos.length)}</span>
+
+                    <div class="cm-detail">
+                      <div class="cm-detail-in">
+                        <div class="cm-detail-body">
+                          <p class="cm-blurb">{e.blurb}</p>
+                          <dl class="cm-specs">
+                            {e.specs.map((s) => (
+                              <div>
+                                <dt class="meta">{s.label}</dt>
+                                <dd>{s.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </div>
+                      </div>
+                    </div>
+
+                    {e.photos.length > 0 ? (
+                      <div class="cm-photos" style={`--cols:${e.photos.length}`}>
+                        {e.photos.map((p) => (
+                          <figure class="cm-shot" data-cm-shot>
+                            <Image
+                              src={p.src}
+                              alt={p.alt}
+                              widths={[600, 1000, 1400]}
+                              sizes="(max-width: 860px) 100vw, 50vw"
+                              loading="lazy"
+                            />
+                          </figure>
+                        ))}
+                      </div>
+                    ) : (
+                      /* An event without a photo still gets a frame of its own,
+                         so the held frame wipes to it like any other photo.
+                         Desktop only — the stacked layout just omits it. */
+                      <div class="cm-photos cm-photos-ph" aria-hidden="true">
+                        <figure class="cm-shot cm-shot-ph" data-cm-shot>
+                          <div class="cm-ph">
+                            <span class="meta">[PHOTO]</span>
+                            <span class="meta cm-ph-name">{e.name}</span>
+                          </div>
+                        </figure>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            {/* Desktop only. The frame the photos are laid onto, and the
+                progress line and caption under it. */}
+            <div class="cm-stage" aria-hidden="true">
+              <div class="cm-bar">
+                <i data-cm-bar />
+              </div>
+              <div class="cm-cap">
+                <span class="meta" data-cm-cap-l />
+                <span class="meta" data-cm-cap-r />
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    ))
+  }
+</section>
