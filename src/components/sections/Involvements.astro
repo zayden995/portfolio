@@ -39,6 +39,7 @@ const beats = (events: (typeof commitments)[number]['events']) =>
                     widths={[800, 1400, 2000]}
                     sizes="100vw"
                     loading="lazy"
+                    style={c.group.focus ? `object-position:${c.group.focus}` : undefined}
                   />
                 ) : (
                   <div class="cm-ph">
@@ -65,7 +66,7 @@ const beats = (events: (typeof commitments)[number]['events']) =>
           <div class="cm-view">
             <div class="cm-list">
               <p class="meta">
-                {c.short} · {c.events.length} event{c.events.length === 1 ? '' : 's'}
+                {c.short} · {c.listLabel ?? `${c.events.length} event${c.events.length === 1 ? '' : 's'}`}
               </p>
               <ol class="cm-rows">
                 {c.events.map((e) => (
@@ -106,9 +107,10 @@ const beats = (events: (typeof commitments)[number]['events']) =>
                             <Image
                               src={p.src}
                               alt={p.alt}
-                              widths={[600, 1000, 1400]}
-                              sizes="(max-width: 860px) 100vw, 50vw"
+                              widths={[600, 1000, 1400, 1800]}
+                              sizes="(max-width: 860px) 100vw, 62vw"
                               loading="lazy"
+                              style={p.focus ? `object-position:${p.focus}` : undefined}
                             />
                           </figure>
                         ))}

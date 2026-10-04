@@ -1,6 +1,6 @@
 # Handoff — Zayden Chua portfolio
 
-Last updated: 2026-09-25
+Last updated: 2026-10-05
 
 > **Update this file and `README.md` after every relevant change**, in the same
 > task, before calling the work done. `CLAUDE.md` defines what counts as
@@ -34,6 +34,16 @@ Experiences, the About rename, the reorder and re-theme, and the new contact
 email. A push to `main` triggers Vercel's production deploy at
 https://zaydenchua-portfolio.vercel.app.
 
+**Live and verified.** `main` is `50d65f0`, in sync with `origin/main`. Vercel
+served it 16 seconds after the push, and the full browser check below was
+re-run against the live site with the same results: no console errors, all
+15 beats in order with a transition into each, the lists fitting, and the
+phone and reduced-motion layouts complete.
+
+**This note is uncommitted by Zayden's choice** — it goes in with the next
+session's commit rather than a commit of its own. `git status` will show
+`HANDOFF.md` modified at the start of the next session; that is expected.
+
 Build is clean (`astro check`: 0 errors, 0 warnings, 0 hints).
 
 The change was verified in an isolated headless Chrome against the production
@@ -53,8 +63,8 @@ build, at 1440×900, 1280×720 and 390×844 and with `prefers-reduced-motion`:
 Still never checked: the contact form actually submitting to Formspree.
 
 ```
-main  [pushed to origin/main on 2026-09-25]
-  (latest) Rebuild Involvements around three commitments
+main  [in sync with origin/main]
+  50d65f0  Rebuild Involvements around three commitments
   a7e0958  Point the site at its real domain, wire the form, hide Projects
   c995dda  Rebuild the portfolio as a single cinematic scroll page
   d91fbd1  Rebuild the theme in monochrome, restore Projects, lift type scale
@@ -160,8 +170,9 @@ square brackets: `grep -rn "\[" src/data/`
 | `src/layouts/BaseLayout.astro` | Head, font link, nav, single motion entry |
 | `src/lib/motion.ts` | **All scroll motion.** Single entry: `initMotion()` |
 | `src/styles/global.css` | Tokens, section themes, every component's CSS |
-| `src/assets/photos/` | Eight real photos, slugged filenames, processed by `astro:assets` |
-| `src/assets/placeholders/` | Three generated project placeholders |
+| `src/assets/photos/` | Real photos named `<group>-<event>-<what>.jpg`, processed by `astro:assets`. See *Photos added 2026-10-05* |
+| `src/assets/placeholders/` | Three generated project placeholders (`project-0n`) and four for the Skills cards (`skill-0n`) |
+| `tools/crop-tool.html` | Standalone dev page for choosing each photo's `focus`; not part of the site build |
 | `README.md` | The manual: running, editing content, how the pieces work. Kept current |
 | `CLAUDE.md` | Loaded by every Claude Code session started in this folder. Holds the rule to keep this file and the README current, and Zayden's working preferences under **Working with Zayden (Preferences)** |
 | `docs/superpowers/specs/2026-09-16-cinematic-portfolio-design.md` | Original design spec for the rebuild — now partly out of date |
@@ -170,6 +181,96 @@ square brackets: `grep -rn "\[" src/data/`
 ---
 
 ## What changed
+
+### Photos added to Involvements (2026-10-05)
+
+Zayden replaced the eight old photos with sixteen new ones, named by event.
+**Committed locally, not pushed.** `astro check` and `astro build` pass, and
+the layout was checked in headless Chrome.
+
+- **Wired in:** SOCC group `socc-mc-group`; Freshman Orientation Camp three
+  photos; Hearts & Homies (the old `hearts-and-homies.jpg`, restored from git
+  and renamed `socc-hearts-and-homies.jpg`); SOCA group `soca-mc-group`; SP Open
+  House two; SPxHP Workshop two; Industry Connect two; the temple's three events
+  four photos. Movie Night, Shirt Sales, Sustainability Hackathon and DSTA
+  BrainHack keep their `[PHOTO]` placeholders
+- **Optimised copies, not the originals.** The camera files were 10–15 MB each.
+  Each was auto-rotated, resized to ≤2400px, saved as JPEG q82 (EXIF/GPS
+  dropped) under a new slugged name. `soca-open-house-selfie` is cropped from a
+  video screenshot to remove its black side bars and scrub bar. The originals
+  (`soccMCgrouppic.jpeg` and the like), the HEICs and the PNG screenshots were
+  **sent to the Recycle Bin on 2026-10-05**, so `src/assets/photos/` holds only the
+  17 files the site imports. They are not in git either; restore from the Bin
+  if a better crop is ever needed
+- **HEIC:** the build cannot read the two HEICs (libheif refuses their
+  reference count; sharp fails the same way). They were converted with the
+  `heic-convert` package (installed in a scratch folder, not the project) at
+  full size, then resized like the rest: `temple-pta-12-apr` (2400×1350) and
+  `soca-spxhp-workshop-oc-group` (1350×2400). Zayden's earlier PNG screenshots
+  of them were softer and were deleted. The HEICs are in the Recycle Bin with the other originals
+- **Skills cards are placeholders** (`skill-01`…`04`) because their four photos
+  were deleted. `about.ts` alt text is "Placeholder image"
+- **Temple retold as what it does (2026-10-05).** Zayden did not want dated
+  events for the temple, so its `events` are now four categories, in his order:
+  *Giving back to the community*, *Tutoring kids* (academically and morally),
+  *Annual events* (A camp, B camp, C camp — their literal names — and food fairs) and *Overseas trips*. No
+  component change beyond one optional field: `Commitment.listLabel` replaces
+  "4 events" with "What we do". The left-hand `year` is now `01`–`04` (any
+  short mark works), and a category's items go in its `specs` rows — Annual
+  events has *Camps: A camp · B camp · C camp* and *Food fairs*. Spec labels
+  for the others are *Role / Who it serves / How often* (Tutoring: *Covers:
+  Academic and moral*). A separate placeholder blurb (`CATEGORY_BLURB`) says
+  "what this is" rather than "what this event was". **Photos are attached on
+  guesses, not confirmed:** the A camp photo (`temple-acamp-group.jpg`) → Annual events (certain); the two `PTA`
+  slides → Tutoring; `FTjdy` → Giving back; Overseas trips has none. Checked
+  in headless Chrome at 1440×900 and 1280×720: four beats in order, the list
+  fits, no console errors
+- `portrait.JPG` was renamed to `portrait.jpg` so the file matches what git
+  and `Hero.astro` expect on a case-sensitive host
+- **Crop tool and `focus`.** `Photo` in `involvements.ts` gained an optional
+  `focus` (a CSS `object-position`, e.g. `'50% 28%'`), applied by
+  `Involvements.astro` to the opener and event images. `tools/crop-tool.html` is a
+  standalone page (open it from disk) where Zayden drags each photo inside the
+  real frame shapes and copies the result; Claude then writes the values into
+  the data. Position only, no zoom, one focus point per photo for all its
+  frames. Smoke-tested in headless Chrome (drag, nudge, copy), no console
+  errors. Its `PHOTOS` list is hard-coded and must be extended with new photos.
+  Zayden chose crops on 2026-10-05; 11 photos have a `focus`, the other five
+  were left centred
+- **Hero portrait: cropped, and now static (2026-10-05).** The self portrait is
+  small in its photo, so a focus point was not enough: `portrait.jpg` is **cut
+  from a kept full copy, `portrait-full.jpg`**, using a box chosen in the crop
+  tool's *Self portrait* entry (position and zoom, locked to 3:4). Zayden's box
+  was left 12.6%, top 18.9%, width 62.4% (of a 0.577-ratio box); it is cut as
+  194,387 958×1277. He disliked how the old scroll drift revealed more of the
+  picture, so the drift is gone: the `img` tweens (`yPercent -14`, and the
+  portrait's `-6`) were removed from the hero timeline, `data-parallax-img` was
+  dropped, and `.hero-portrait img` is `height: 100%` instead of 130%. The
+  arrival rise (8% up, scale 1.04 → 1) stays; the headline still drifts. Because
+  the 130% overscan was what cropped the lower fifth of the old picture, the cut
+  keeps only what he saw on arrival. Checked in headless Chrome: after a
+  300px wheel the frame moved exactly 300px with the page, the picture's offset
+  inside it stayed 0, no console errors. On a phone the portrait is a faint
+  full-bleed background and crops to a narrow slice of the cut (the subject is
+  mostly off to one side there); an `object-position` for it would be a one-line
+  change. Always re-cut from `portrait-full.jpg`, never from `portrait.jpg`
+- **Wider photo frame (desktop).** Zayden asked for more room for the photos.
+  The frame used to start at 50% of the screen and was nearly square (~1.15:1),
+  which cropped wide group photos hard. It now starts at `--split: 0.38`
+  (`0.48` at ≤1100px) and the list column is calculated from it, so one number
+  moves both. At 1440×900 the frame is 835×558 (~1.5:1) and the list 418px
+  wide; at 1280×720 742×446 and 371px. Event details text is unchanged (he
+  chose a narrower column over shorter copy). Checked in headless Chrome against
+  the production build at 1440×900, 1280×720, 1024×768 and 390×844: the list
+  fits with details open at every desktop size, every beat showed, no console
+  errors. Photo widths in `Involvements.astro` now include 1800 and `sizes` is
+  62vw. Frames elsewhere: phone/tablet event frame is 4:3; the opener is ~1.85:1
+  on desktop and ~0.62:1 on a phone
+- **Portrait photos in landscape frames** (`socc-mc-group`,
+  `soca-industry-connect-emcees`, `soca-spxhp-workshop-oc-group`) crop hard; the
+  crops are set, but Zayden should still look at them on the page
+- The closeup (`soca-industry-connect-emcees`) and the open-house selfie show
+  a name tag with a full name
 
 ### My commitments replaces Involvements and Experiences (2026-09-25)
 
@@ -251,7 +352,7 @@ Motion.** GSAP runs from one module; Framer Motion only appears inside the two
 React islands. Lenis drives ScrollTrigger via the GSAP ticker rather than
 running beside it.
 
-What GSAP does: hero parallax (three layers, three rates), SplitText line
+What GSAP does: the hero (headline drift on scroll; the portrait only rises in on load), SplitText line
 reveals, `data-reveal` entrances, counters, the blueprint draw-on, the Projects
 track (hidden), and Involvements — the openers and the held frame. Until
 2026-09-25 it also drove the Involvements opening beat and the Experiences
@@ -476,15 +577,26 @@ back.
 
 ## What should be done next
 
-### Next session — planned by Zayden on 2026-09-25
+### Next session — agreed on 2026-10-05
 
-1. **Tweak the content** in `src/data/` — the Involvements placeholders listed
-   under *Real content* below, and anything else he wants reworded
-2. **Add photos** — group photos for SOCA and the temple, and photos for the
-   events that have none. See *Photos* in `README.md` for where they go
-3. **Sum up the project** — he intends to wrap the site up soon after. Ask what
-   "sum up" should cover (a final deploy, a final handoff, a write-up) rather
-   than assuming
+Zayden ended the session saying he will pick it up next time; he did not give a
+further agenda. The photos, crops, wider frame, static portrait and temple
+categories are **committed locally as "Add real Involvements photos, wider photo
+frame and crop tool" (on top of `50d65f0`) and not pushed**. Zayden pushes only
+after he has looked through the site and settled photo consent. Start with:
+
+1. **Fill in the Involvements content, one entry at a time** — name/year,
+   blurb, and the spec values — beginning with the temple's four categories
+   (see *Temple retold as what it does* above for what is still a guess)
+2. **Answer the open questions:** is FTjdy
+   "giving back" and PTA "tutoring"; does the temple get a group photo; the
+   Role rows he has not given yet
+3. **Photo consent** for the people in the photos (children in the A camp photo)
+   before anything is pushed — the repo is **public** and a push is permanent
+4. **Look at the site himself** once the copy is in, then commit. Show the full
+   commit message first (his rule). Do not add a Co-Authored-By trailer
+5. **Sum up the project** — he intends to wrap up soon after. Ask what "sum up"
+   should cover (a final deploy, a final handoff, a write-up)
 
 Also open, suggested to him for when there is time:
 
@@ -496,11 +608,14 @@ Also open, suggested to him for when there is time:
   it comes back before the wrap-up or is dropped for good
 - **WhatsApp** — test `https://wa.me/zxyden` from a phone; if it opens a chat,
   uncomment the entry in `site.ts`
-- **Photo consent** from the people in the event photos, since the repo is
-  public
+- **Skills-card photos** — four numbered placeholders for now
+- **Phone portrait** — faint full-bleed background that mostly shows the side
+  of the picture; an `object-position` would centre it on him
 
-`src/data/` is the only place content changes should need. Real photos added
-next session go public on push — the repo is **public**.
+`src/data/` is the only place content changes should need. When committing,
+`git status` will show the seven old photos as deleted and the new ones as
+untracked — that is expected; stage them together. (That commit is done; later
+photo changes are new commits, or `--amend` while still unpushed.)
 
 ### 1. Deployment notes
 
@@ -524,13 +639,13 @@ This is now the only thing standing between the site and finished.
 - `src/data/involvements.ts` — Zayden will supply these once the site's layout
   is settled:
   - every event's `blurb` and its `Role / Scale / Outcome` values
-  - the temple's events: three `[EVENT n]` / `[YEAR]` placeholders
-  - group photos for **SOCA** and **the temple** (currently a marked field)
-  - photos for the nine events without any: Movie Night, Shirt Sales,
-    Sustainability Hackathon, SP Open House, DSTA BrainHack, SPxHP Workshop,
-    and the three temple events
-  - whether `foc-committee` stays as SOCC's group photo — it is the orientation
-    committee, used as the nearest thing to a club group shot
+  - the temple's four categories: blurbs, spec values, which photo belongs to
+    which (see above), and a temple
+    group photo (none yet)
+  - photos for the four events without any: Movie Night, Shirt Sales,
+    Sustainability Hackathon and DSTA BrainHack — placeholders for now
+  - the four Skills-card photos (currently placeholders)
+  - whether `socc-mc-group` is right as SOCC's group photo
 - `src/data/projects.ts` — three `[PROJECT n]` placeholders. The section is
   hidden, so this is not public, but it stays hidden until the copy exists.
   Swap in screenshots from `src/assets/photos/` and delete unused placeholders

@@ -78,6 +78,11 @@ photo, and its events:
 - **Adding an event** is one entry in a commitment's `events`; **adding a photo**
   is one entry in an event's `photos`. The section's scroll length grows with
   the photo count on its own
+- **An entry does not have to be a dated event.** The temple is told as what it
+  does — four entries, each a category. A commitment can set `listLabel`
+  (`'What we do'`) to replace the "N events" heading, and an entry's `year` is
+  just a short left-hand label, so `'01'` works as well as `'2026'`. Put the
+  items inside a category in its `specs` rows (e.g. a *Camps* row)
 - `specs` prints in order under the event's name. Three rows is what the list is
   sized for — see *Involvements* below before adding many more
 - `photos` show one after another in the frame, in the order given. Until an
@@ -101,22 +106,51 @@ WebP at several sizes and lazy-loads everything except the hero portrait.
 
 To use a new one:
 
-1. Put the file in `src/assets/photos/`, named in lowercase with hyphens
-   (no spaces or `&`)
+1. Put the file in `src/assets/photos/`, named `<group>-<event>-<what>.jpg` in
+   lowercase with hyphens — e.g. `soca-industry-connect-group.jpg`,
+   `socc-foc-flag-making.jpg`. Export phone photos as JPG (not HEIC, which the
+   build cannot read) and resize first (see below)
 2. Import it at the top of the data file:
    `import myEvent from '../assets/photos/my-event.jpg';`
 3. In `involvements.ts`, add it as `{ src: myEvent, alt: '…' }`, with `alt`
    describing what is in it. In `projects.ts` it is `image` and `imageAlt`
 
-Aim for about 1600px on the long edge. Group photos fill the screen and event
+Resize to about 2400px on the long edge, JPEG quality ~82 — roughly 200–800 KB
+each. Straight-from-camera files are 10–15 MB and would bloat a public repo
+for good. Resizing also drops the EXIF block, which on phone photos can carry
+the GPS location. Group photos fill the screen and event
 photos fill a landscape frame, so both crop — keep the subject near the middle.
 Project cards crop to 4:5.
 
 Projects is currently **hidden from the page** — its three entries are still
 placeholders, so the section is not rendered and not in the nav. The data and
 its generated images in `src/assets/placeholders/` are untouched, waiting.
+The four Skills cards also use generated placeholders from that folder
+(`skill-01`…`skill-04`) until real photos are chosen; they are imported at the
+top of `Skills.astro`.
 To bring it back, see the comment in `src/pages/index.astro`. Delete a
 placeholder JPEG once nothing imports it.
+
+#### Choosing what a crop keeps
+
+Frames fill their box and crop the photo, so the centre is what survives by
+default. To choose another part, open `tools/crop-tool.html` in a browser (it
+reads the photos straight from `src/assets/photos/`, no server needed). It shows
+each photo in the shapes the site gives it — the near-square desktop frame, the
+4:3 phone frame, and the chapter openers — and you drag inside any frame to move
+the picture. **Copy my crops** gives a list like `"socc-mc-group.jpg": "50% 28%"`;
+each value goes on that photo in `involvements.ts` as `focus: '50% 28%'`
+(a CSS `object-position`: across, down). A new photo has to be added to the
+`PHOTOS` list at the top of the tool's script to appear in it.
+
+**The hero portrait is different.** It is cropped for real, with zoom, because
+the subject is small in the frame. The full photo is kept as
+`src/assets/photos/portrait-full.jpg`; the tool's first entry, *Self portrait*,
+lets you drag and resize a 3:4 box on it and shows how the hero frame will look.
+The portrait does not move on scroll, so the chosen box is cut out of
+`portrait-full.jpg` at exactly 3:4 into `portrait.jpg`, which is what
+`Hero.astro` imports. Re-cut it from the full photo each time, never from
+`portrait.jpg`.
 
 Several photos show other people. If this repo is public, so are their faces,
 and git history keeps them even after a file is deleted.
@@ -210,7 +244,7 @@ What `motion.ts` drives:
 
 | Hook | Effect |
 | --- | --- |
-| `#hero` | Three layers moving at three rates |
+| `#hero` | The headline drifts up on scroll; the portrait rises in on arrival, then stays still |
 | `[data-split]` | Headings rise into view line by line |
 | `[data-reveal]` | Fades up on arrival |
 | `[data-count]` | Counters run up to their value |
@@ -259,6 +293,11 @@ On screens wider than 860px **and** at least 720px tall, `motion.ts` adds
 **One knob:** `--commit-hold` on `.commit-sec` in `global.css` — screens of
 scroll per photo and per opener hold, currently `0.67`. `motion.ts` reads the
 same value.
+
+**Second knob:** `--split` on `.is-staged .cm-view` — where the photo frame
+starts, as a share of the screen width (`0.38`; `0.48` at 1100px and under).
+The list column is sized from it, so raising it gives the list room and the
+photo less. At 1440×900 the frame is about 835×558.
 
 **The list has to fit the held view** with one event's details open. Five
 events with three spec rows fit at 1280×720. If a commitment grows much longer,

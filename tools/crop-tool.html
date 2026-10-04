@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crop tool</title>
+<style>
+  :root {
+    --espresso: #312726;
+    --cream: #fff8ed;
+    --stone: #7a716e;
+    --rule: #4d4240;
+    --a: #ff8a5c;
+    --b: #5cc8ff;
+    --c: #b6e35c;
+    --d: #e58cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 14px/1.4 Arial, Helvetica, sans-serif;
+    background: var(--espresso);
+    color: var(--cream);
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+  aside {
+    border-right: 1px solid var(--rule);
+    padding: 16px;
+    overflow-y: auto;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+  aside h1 { font-size: 15px; margin: 0 0 4px; letter-spacing: .04em; text-transform: uppercase; }
+  aside p.help { color: var(--stone); font-size: 12px; margin: 0 0 16px; }
+  .grp { margin: 18px 0 6px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--stone); }
+  .evt { margin: 10px 0 4px; font-size: 12px; color: var(--cream); opacity: .8; }
+  .item {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    background: none; border: 1px solid transparent; color: var(--cream);
+    padding: 6px 8px; text-align: left; cursor: pointer; font: inherit; font-size: 13px;
+  }
+  .item:hover { border-color: var(--rule); }
+  .item.on { border-color: var(--cream); }
+  .item i { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--stone); flex: none; }
+  .item.edited i { background: var(--c); border-color: var(--c); }
+  .item .tag { margin-left: auto; font-size: 10px; color: var(--stone); letter-spacing: .08em; text-transform: uppercase; }
+
+  main { padding: 20px 28px 60px; min-width: 0; }
+  .bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 18px; }
+  .bar h2 { margin: 0; font-size: 18px; font-weight: 700; }
+  .bar .pos { color: var(--stone); font-variant-numeric: tabular-nums; }
+  button.btn {
+    background: none; color: var(--cream); border: 1px solid var(--stone);
+    padding: 7px 12px; cursor: pointer; font: inherit; font-size: 13px;
+  }
+  button.btn:hover { border-color: var(--cream); }
+  button.btn.solid { background: var(--cream); color: var(--espresso); border-color: var(--cream); font-weight: 700; }
+  .spacer { flex: 1; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+  .panel h3 { margin: 0 0 8px; font-size: 11px; font-weight: 400; letter-spacing: .12em; text-transform: uppercase; color: var(--stone); }
+  .panel h3 b { color: var(--cream); font-weight: 400; }
+
+  #full { position: relative; display: inline-block; cursor: crosshair; touch-action: none; user-select: none; }
+  #full img { display: block; width: auto; height: auto; max-width: 380px; max-height: 60vh; pointer-events: none; }
+  .win { position: absolute; border: 2px solid; pointer-events: none; box-shadow: 0 0 0 1px rgb(0 0 0 / .4); }
+  .win span { position: absolute; left: 4px; top: 2px; font-size: 10px; font-weight: 700; text-shadow: 0 1px 2px #000; }
+  .shade { position: absolute; inset: 0; background: rgb(0 0 0 / .35); pointer-events: none; }
+
+  .frame { position: relative; overflow: hidden; background: #000; cursor: grab; touch-action: none; user-select: none; outline: 2px solid; outline-offset: 3px; }
+  .frame.drag { cursor: grabbing; }
+  .frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+  .previews { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+  .note { color: var(--stone); font-size: 12px; max-width: 70ch; margin-top: 22px; }
+  .note b { color: var(--cream); font-weight: 700; }
+
+  .row[hidden] { display: none; }
+  #pfull { position: relative; display: inline-block; cursor: crosshair; touch-action: none; user-select: none; overflow: hidden; }
+  #pfull img { display: block; width: auto; height: auto; max-width: 400px; max-height: 66vh; pointer-events: none; }
+  .prect { position: absolute; border: 2px solid var(--cream); box-shadow: 0 0 0 9999px rgb(0 0 0 / .55); cursor: move; }
+  .pframe { position: relative; overflow: hidden; width: 260px; height: 347px; background: #000; outline: 2px solid; outline-offset: 3px; }
+  .pbox { position: absolute; left: 0; top: 0; width: 260px; height: 347px; overflow: hidden; }
+  .pbox img { position: absolute; max-width: none; display: block; }
+  .zoom { margin-top: 12px; display: flex; gap: 10px; align-items: center; color: var(--stone); font-size: 12px; }
+  .zoom input { width: 240px; }
+  dialog { background: var(--espresso); color: var(--cream); border: 1px solid var(--stone); width: min(640px, 92vw); }
+  dialog textarea { width: 100%; height: 220px; background: #231c1b; color: var(--cream); border: 1px solid var(--rule); font: 12px/1.4 Consolas, monospace; padding: 8px; }
+  dialog::backdrop { background: rgb(0 0 0 / .6); }
+
+  @media (max-width: 900px) {
+    body { grid-template-columns: 1fr; }
+    aside { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule); }
+  }
+</style>
+</head>
+<body>
+<aside>
+  <h1>Crop tool</h1>
+  <p class="help">Pick a photo, then drag inside any frame (or on the full photo) to choose which part shows. Frames match the site.</p>
+  <div id="list"></div>
+</aside>
+
+<main>
+  <div class="bar">
+    <h2 id="title"></h2>
+    <span class="pos" id="pos"></span>
+    <span class="spacer"></span>
+    <button class="btn" id="prev" title="Shortcut: [">&larr; Prev</button>
+    <button class="btn" id="next" title="Shortcut: ]">Next &rarr;</button>
+    <button class="btn" id="reset">Centre</button>
+    <button class="btn solid" id="copy">Copy my crops</button>
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <h3>What the site shows &middot; <b>drag any frame</b></h3>
+      <div class="previews" id="previews"></div>
+    </div>
+    <div class="panel">
+      <h3>The whole photo &middot; <b>click or drag to aim</b></h3>
+      <div id="full"></div>
+    </div>
+  </div>
+
+  <div class="row" id="pview" hidden></div>
+
+  <p class="note">
+    <b>How it works:</b> each photo has one focus point, used in every frame it appears in.
+    The frames only crop; they never zoom in more than needed to fill the box.
+    The coloured outlines on the whole photo show what each frame keeps.
+    Arrow keys nudge by 1% (hold Shift for 5%). Your choices are remembered in this browser,
+    then press <b>Copy my crops</b> and paste the result back to Claude.
+  </p>
+</main>
+
+<dialog id="dlg">
+  <p style="margin-top:0">Couldn't reach the clipboard. Select all, copy, and paste this to Claude:</p>
+  <textarea id="out" readonly></textarea>
+  <p><button class="btn" id="close">Close</button></p>
+</dialog>
+
+<script>
+  var DIR = '../src/assets/photos/';
+
+  // group: which commitment. event: the event name (or "Group photo"). opener: used as a full-width chapter opener.
+  var PHOTOS = [
+    { f: 'portrait-full.jpg',                 g: 'Hero',   e: 'Self portrait', portrait: true },
+    { f: 'socc-mc-group.jpg',                  g: 'SOCC',   e: 'Group photo (opener)', opener: true },
+    { f: 'socc-hearts-and-homies.jpg',         g: 'SOCC',   e: 'Hearts & Homies' },
+    { f: 'socc-foc-group.jpg',                 g: 'SOCC',   e: 'Freshman Orientation Camp' },
+    { f: 'socc-foc-flag-making.jpg',           g: 'SOCC',   e: 'Freshman Orientation Camp' },
+    { f: 'socc-foc-flag-waving.jpg',           g: 'SOCC',   e: 'Freshman Orientation Camp' },
+    { f: 'soca-mc-group.jpg',                  g: 'SOCA',   e: 'Group photo (opener)', opener: true },
+    { f: 'soca-open-house-group.jpg',          g: 'SOCA',   e: 'SP Open House' },
+    { f: 'soca-open-house-selfie.jpg',         g: 'SOCA',   e: 'SP Open House' },
+    { f: 'soca-spxhp-workshop-group.jpg',      g: 'SOCA',   e: 'SPxHP Workshop' },
+    { f: 'soca-spxhp-workshop-oc-group.jpg',   g: 'SOCA',   e: 'SPxHP Workshop' },
+    { f: 'soca-industry-connect-group.jpg',    g: 'SOCA',   e: 'Industry Connect' },
+    { f: 'soca-industry-connect-emcees.jpg',   g: 'SOCA',   e: 'Industry Connect' },
+    { f: 'temple-acamp-group.jpg',             g: 'Temple', e: 'Acamp' },
+    { f: 'temple-ftjdy-group.jpg',             g: 'Temple', e: '[EVENT 2] (FTjdy)' },
+    { f: 'temple-pta-12-apr.jpg',              g: 'Temple', e: '[EVENT 3] (PTA)' },
+    { f: 'temple-pta-20-sep.jpg',              g: 'Temple', e: '[EVENT 3] (PTA)' }
+  ];
+
+  // The frames, with the shapes the site gives them. w/h are preview pixels, ratio is what matters.
+  var FRAMES = {
+    desk:  { name: 'Desktop event frame', note: '~1.15 : 1', w: 400, h: 348, color: 'var(--a)' },
+    stack: { name: 'Phone / tablet event', note: '4 : 3',    w: 360, h: 270, color: 'var(--b)' },
+    wide:  { name: 'Chapter opener, desktop', note: '~1.85 : 1', w: 560, h: 303, color: 'var(--c)' },
+    tall:  { name: 'Chapter opener, phone',   note: '~0.62 : 1', w: 190, h: 306, color: 'var(--d)' }
+  };
+
+  var KEY = 'crop-tool-v1';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { state = {}; }
+  // The portrait box changed shape (now 3:4); drop any box saved for the old shape.
+  if (state._v !== 2) { delete state['portrait-full.jpg']; state._v = 2; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function get(f) { return state[f] || { x: 50, y: 50, edited: false }; }
+  function set(f, x, y) {
+    state[f] = { x: clamp(Math.round(x * 10) / 10), y: clamp(Math.round(y * 10) / 10), edited: true };
+    save();
+  }
+  function clamp(v) { return Math.max(0, Math.min(100, v)); }
+  function fmt(n) { return String(Math.round(n)); }
+
+  var cur = 0;
+  var sizes = {}; // natural sizes by file
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function frameKeys(p) { return p.opener ? ['wide', 'tall'] : ['desk', 'stack']; }
+
+  function buildList() {
+    var html = '', lastG = '', lastE = '';
+    PHOTOS.forEach(function (p, i) {
+      if (p.g !== lastG) { html += '<div class="grp">' + p.g + '</div>'; lastG = p.g; lastE = ''; }
+      if (p.e !== lastE) { html += '<div class="evt">' + p.e + '</div>'; lastE = p.e; }
+      html += '<button class="item" data-i="' + i + '"><i></i>' + p.f.replace(/\.jpg$/, '') + '</button>';
+    });
+    $('list').innerHTML = html;
+    $('list').addEventListener('click', function (ev) {
+      var b = ev.target.closest('.item'); if (b) go(+b.dataset.i);
+    });
+  }
+
+  function refreshList() {
+    document.querySelectorAll('.item').forEach(function (b) {
+      var p = PHOTOS[+b.dataset.i], s = get(p.f);
+      b.classList.toggle('on', +b.dataset.i === cur);
+      b.classList.toggle('edited', !!s.edited);
+    });
+  }
+
+  function go(i) {
+    cur = (i + PHOTOS.length) % PHOTOS.length;
+    var p = PHOTOS[cur];
+    $('title').textContent = p.g + ' · ' + p.e;
+    var src = DIR + p.f;
+    var load = function (w, h) { sizes[p.f] = { w: w, h: h }; render(); };
+    if (sizes[p.f]) { render(); }
+    else {
+      var im = new Image();
+      im.onload = function () { load(im.naturalWidth, im.naturalHeight); };
+      im.onerror = function () { $('pos').textContent = 'Could not load ' + src; };
+      im.src = src;
+    }
+    refreshList();
+  }
+
+  function visible(p, key) {
+    var sz = sizes[p.f], fr = FRAMES[key], s = get(p.f);
+    var scale = Math.max(fr.w / sz.w, fr.h / sz.h);
+    var vw = fr.w / (sz.w * scale), vh = fr.h / (sz.h * scale);
+    return { x0: (1 - vw) * s.x / 100, y0: (1 - vh) * s.y / 100, vw: vw, vh: vh,
+             ox: sz.w * scale - fr.w, oy: sz.h * scale - fr.h };
+  }
+
+  function render() {
+    var p = PHOTOS[cur], s = get(p.f), sz = sizes[p.f];
+    if (!sz) return;
+    document.querySelectorAll('.row:not(#pview)').forEach(function (r) { r.hidden = !!p.portrait; });
+    $('pview').hidden = !p.portrait;
+    if (p.portrait) return renderPortrait(p);
+    $('pos').textContent = fmt(s.x) + '% across, ' + fmt(s.y) + '% down · ' + sz.w + '×' + sz.h + ' px';
+
+    // whole photo with crop windows
+    var keys = frameKeys(p), full = $('full');
+    var w = '<img src="' + DIR + p.f + '" alt=""><div class="shade"></div>';
+    keys.forEach(function (k, ki) {
+      var v = visible(p, k), c = FRAMES[k].color;
+      w += '<div class="win" style="border-color:' + c + ';color:' + c + ';left:' + v.x0 * 100 + '%;top:' + v.y0 * 100 +
+           '%;width:' + v.vw * 100 + '%;height:' + v.vh * 100 + '%"><span style="top:' + (2 + ki * 14) + 'px">' + FRAMES[k].name + '</span></div>';
+    });
+    full.innerHTML = w;
+
+    // previews
+    var pv = $('previews'), h = '';
+    keys.forEach(function (k) {
+      var fr = FRAMES[k];
+      h += '<div class="panel"><h3 style="color:' + fr.color + '">' + fr.name + ' <b>' + fr.note + '</b></h3>' +
+           '<div class="frame" data-k="' + k + '" style="width:' + fr.w + 'px;height:' + fr.h + 'px;outline-color:' + fr.color + '">' +
+           '<img src="' + DIR + p.f + '" alt="" style="object-position:' + s.x + '% ' + s.y + '%"></div></div>';
+    });
+    pv.innerHTML = h;
+    refreshList();
+  }
+
+  // dragging a frame pans the picture inside it
+  $('previews').addEventListener('pointerdown', function (ev) {
+    var fe = ev.target.closest('.frame'); if (!fe) return;
+    var p = PHOTOS[cur], k = fe.dataset.k, v = visible(p, k), s = get(p.f);
+    var sx = ev.clientX, sy = ev.clientY, x0 = s.x, y0 = s.y;
+    fe.setPointerCapture(ev.pointerId); fe.classList.add('drag');
+    function mv(e) {
+      var nx = v.ox > 0.5 ? x0 - (e.clientX - sx) / v.ox * 100 : x0;
+      var ny = v.oy > 0.5 ? y0 - (e.clientY - sy) / v.oy * 100 : y0;
+      set(p.f, nx, ny);
+      liveUpdate();
+    }
+    function up() { fe.classList.remove('drag'); fe.removeEventListener('pointermove', mv); fe.removeEventListener('pointerup', up); fe.removeEventListener('pointercancel', up); render(); }
+    fe.addEventListener('pointermove', mv); fe.addEventListener('pointerup', up); fe.addEventListener('pointercancel', up);
+  });
+
+  // clicking / dragging on the whole photo aims the focus so the windows centre on the pointer, as far as they can
+  $('full').addEventListener('pointerdown', function (ev) {
+    var full = $('full'); full.setPointerCapture(ev.pointerId);
+    var p = PHOTOS[cur];
+    function aim(e) {
+      var r = full.getBoundingClientRect();
+      var fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+      var keys = frameKeys(p), nx = 50, ny = 50, cx = 0, cy = 0;
+      // choose the focus that puts the first frame's centre at the pointer, where it can move
+      var v = visible(p, keys[0]);
+      if (v.vw < 0.999) { nx = (fx - v.vw / 2) / (1 - v.vw) * 100; cx = 1; }
+      if (v.vh < 0.999) { ny = (fy - v.vh / 2) / (1 - v.vh) * 100; cy = 1; }
+      var s = get(p.f);
+      set(p.f, cx ? nx : s.x, cy ? ny : s.y);
+      liveUpdate();
+    }
+    function mv(e) { aim(e); }
+    function up() { full.removeEventListener('pointermove', mv); full.removeEventListener('pointerup', up); render(); }
+    full.addEventListener('pointermove', mv); full.addEventListener('pointerup', up);
+    aim(ev);
+  });
+
+  // update positions in place while dragging (a full re-render would drop the pointer capture)
+  function liveUpdate() {
+    var p = PHOTOS[cur], s = get(p.f);
+    document.querySelectorAll('#previews .frame img').forEach(function (im) { im.style.objectPosition = s.x + '% ' + s.y + '%'; });
+    var wins = document.querySelectorAll('#full .win');
+    frameKeys(p).forEach(function (k, i) {
+      var v = visible(p, k);
+      wins[i].style.left = v.x0 * 100 + '%'; wins[i].style.top = v.y0 * 100 + '%';
+    });
+    $('pos').textContent = fmt(s.x) + '% across, ' + fmt(s.y) + '% down · ' + sizes[p.f].w + '×' + sizes[p.f].h + ' px';
+  }
+
+  $('prev').onclick = function () { go(cur - 1); };
+  $('next').onclick = function () { go(cur + 1); };
+  $('reset').onclick = function () { var p = PHOTOS[cur]; delete state[p.f]; save(); render(); };
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '[') return go(cur - 1);
+    if (e.key === ']') return go(cur + 1);
+    if (PHOTOS[cur].portrait) {
+      var st = e.shiftKey ? 0.05 : 0.01, c = pget(), mx = 0, my = 0;
+      if (e.key === 'ArrowLeft') mx = -st; else if (e.key === 'ArrowRight') mx = st;
+      else if (e.key === 'ArrowUp') my = -st; else if (e.key === 'ArrowDown') my = st; else return;
+      e.preventDefault(); c.l += mx; c.t += my; pset(c); return updatePortrait();
+    }
+    var step = e.shiftKey ? 5 : 1, p = PHOTOS[cur], s = get(p.f), dx = 0, dy = 0;
+    if (e.key === 'ArrowLeft') dx = -step; else if (e.key === 'ArrowRight') dx = step;
+    else if (e.key === 'ArrowUp') dy = -step; else if (e.key === 'ArrowDown') dy = step; else return;
+    e.preventDefault(); set(p.f, s.x + dx, s.y + dy); render();
+  });
+
+  // ---- Self portrait: a real crop (with zoom), saved by Claude into portrait.jpg ----
+  // The hero frame is 3:4 and the picture no longer moves, so the crop is cut at exactly 3:4.
+  var PR = 0.75, PKEY = 'portrait-full.jpg', PBOX_W = 260, PBOX_H = Math.round(PBOX_W / PR);
+  function pdims() { var z = sizes[PKEY]; return { W: z.w, H: z.h, maxW: Math.min(1, PR * z.h / z.w) }; }
+  function ph(c) { var d = pdims(); return c.w * d.W / PR / d.H; }
+  function pclamp(c) {
+    var d = pdims(); c.w = Math.max(0.15, Math.min(d.maxW, c.w));
+    c.l = Math.max(0, Math.min(1 - c.w, c.l)); c.t = Math.max(0, Math.min(1 - ph(c), c.t)); return c;
+  }
+  function pget() {
+    var s = state[PKEY], d = pdims();
+    if (s && s.w) return { l: s.l, t: s.t, w: s.w, edited: s.edited };
+    return { l: (1 - d.maxW) / 2, t: 0, w: d.maxW, edited: false };
+  }
+  function pset(c) { c = pclamp(c); c.edited = true; state[PKEY] = c; save(); }
+
+  function renderPortrait(p) {
+    var src = DIR + p.f, v = $('pview');
+    v.innerHTML =
+      '<div class="panel"><h3>Choose the crop &middot; <b>drag the box, slide to zoom</b></h3>' +
+      '<div id="pfull"><img src="' + src + '" alt=""><div class="prect" id="prect"></div></div>' +
+      '<div class="zoom"><span>Wider</span><input type="range" id="pzoom" min="15" step="0.5"><span>Closer</span></div></div>' +
+      '<div class="panel"><h3 style="color:var(--a)">How the hero shows it</h3><div class="pframe" id="pf0" style="outline-color:var(--a)"><div class="pbox"><img src="' + src + '" alt=""></div></div></div>' +
+      '';
+    var d = pdims(); $('pzoom').max = Math.round(d.maxW * 1000) / 10;
+    $('pzoom').value = (+$('pzoom').max) - (pget().w * 100 - 15);   // right = closer
+    $('pzoom').oninput = function () {
+      var c = pget(), cx = c.l + c.w / 2, cy = c.t + ph(c) / 2;
+      c.w = ((+$('pzoom').max) - (+$('pzoom').value) + 15) / 100;
+      c.l = cx - c.w / 2; c.t = cy - ph(c) / 2; pset(c); updatePortrait();
+    };
+    $('pfull').onpointerdown = function (ev) {
+      var box = $('pfull'); box.setPointerCapture(ev.pointerId);
+      var r = box.getBoundingClientRect(), c = pget(), h = ph(c);
+      var fx = (ev.clientX - r.left) / r.width, fy = (ev.clientY - r.top) / r.height;
+      var inside = fx >= c.l && fx <= c.l + c.w && fy >= c.t && fy <= c.t + h;
+      var ox = inside ? fx - c.l : c.w / 2, oy = inside ? fy - c.t : h / 2;
+      function mv(e) {
+        var gx = (e.clientX - r.left) / r.width, gy = (e.clientY - r.top) / r.height, k = pget();
+        k.l = gx - ox; k.t = gy - oy; pset(k); updatePortrait();
+      }
+      function up() { box.removeEventListener('pointermove', mv); box.removeEventListener('pointerup', up); }
+      box.addEventListener('pointermove', mv); box.addEventListener('pointerup', up); mv(ev);
+    };
+    updatePortrait();
+  }
+
+  function updatePortrait() {
+    var c = pget(), d = pdims(), h = ph(c), r = $('prect');
+    r.style.left = c.l * 100 + '%'; r.style.top = c.t * 100 + '%'; r.style.width = c.w * 100 + '%'; r.style.height = h * 100 + '%';
+    var imgW = PBOX_W / c.w, imgH = imgW * d.H / d.W;
+    [['pf0', 0]].forEach(function (a) {
+      var fr = $(a[0]), box = fr.querySelector('.pbox'), im = box.querySelector('img');
+      box.style.transform = 'translateY(' + (-a[1] * PBOX_H) + 'px)';
+      im.style.width = imgW + 'px'; im.style.height = imgH + 'px';
+      im.style.left = (-c.l * imgW) + 'px'; im.style.top = (-c.t * imgH) + 'px';
+    });
+    $('pos').textContent = 'crop ' + Math.round(c.w * d.W) + '\u00d7' + Math.round(c.w * d.W / PR) + ' px of ' + d.W + '\u00d7' + d.H +
+      ' \u00b7 left ' + Math.round(c.l * 100) + '%, top ' + Math.round(c.t * 100) + '%';
+    refreshList();
+  }
+
+  function results() {
+    var o = {};
+    PHOTOS.forEach(function (p) {
+      var s = state[p.f];
+      if (p.portrait) { if (s && s.edited) o.portrait = { left: +s.l.toFixed(4), top: +s.t.toFixed(4), width: +s.w.toFixed(4), of: p.f }; return; }
+      if (s && s.edited) o[p.f] = fmt(s.x) + '% ' + fmt(s.y) + '%';
+    });
+    return JSON.stringify(o, null, 2);
+  }
+  $('copy').onclick = function () {
+    var text = results();
+    function fallback() { $('out').value = text; $('dlg').showModal(); $('out').select(); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        $('copy').textContent = 'Copied ✓'; setTimeout(function () { $('copy').textContent = 'Copy my crops'; }, 1600);
+      }, fallback);
+    } else fallback();
+  };
+  $('close').onclick = function () { $('dlg').close(); };
+
+  buildList();
+  go(0);
+</script>
+</body>
+</html>

@@ -287,8 +287,8 @@
   max-width: 38ch;
 }
 
-/* The portrait is the middle of three scrubbed layers: ground, portrait,
-   headline, each moving at its own rate. */
+/* The portrait arrives with a rise and then stays still while the headline
+   drifts past it. portrait.jpg is cut at exactly 3:4, so nothing here crops. */
 .hero-portrait {
   position: relative;
   z-index: 1;
@@ -300,12 +300,11 @@
 }
 .hero-portrait img {
   width: 100%;
-  height: 130%;
+  height: 100%;
   object-fit: cover;
   object-position: 50% 30%;
   display: block;
   filter: grayscale(0.35) contrast(1.05) brightness(0.9);
-  will-change: transform;
 }
 
 .hero-foot {
@@ -928,7 +927,10 @@
   /* The frame's rectangle. The photos, the placeholders, the progress line
      and the caption all read these, so none of them can drift apart. */
   --gap: clamp(2rem, 5vw, 5rem);
-  --fl: 50%;
+  /* Where the frame starts, as a share of the screen width. The list is sized
+     from it below, so changing this one number moves both. */
+  --split: 0.38;
+  --fl: calc(var(--split) * 100%);
   --fr: var(--gutter);
   --fh: min(62svh, 44vw);
   --ft: calc(var(--nav-clear) + (100svh - var(--nav-clear) - var(--gutter) - var(--fh) - 2.5rem) / 2);
@@ -939,10 +941,16 @@
   align-items: center;
   padding: var(--nav-clear) var(--gutter) var(--gutter);
 }
-/* 50% of the content box is the frame's left edge less one gutter, so the
-   list ends one gap short of the frame. */
+/* The list ends one gap short of the frame. Its percentage is of the content
+   box, which is the screen less a gutter each side, hence the correction. */
 .is-staged .cm-list {
-  width: calc(50% - var(--gap));
+  width: calc(var(--split) * 100% + (2 * var(--split) - 1) * var(--gutter) - var(--gap));
+}
+/* Narrower screens keep a roomier list. */
+@media (max-width: 1100px) {
+  .is-staged .cm-view {
+    --split: 0.48;
+  }
 }
 
 /* Only the row's text dims. Its photos are laid onto the frame, and dimming

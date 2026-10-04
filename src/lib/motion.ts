@@ -111,13 +111,12 @@ function reveals(ease: string) {
   });
 }
 
-/** The hero: three layers, three rates. */
+/** The hero: the headline drifts on scroll; the portrait arrives, then stays put. */
 function heroParallax(ease: string) {
   const hero = document.getElementById('hero');
   if (!hero) return;
 
   const portrait = hero.querySelector<HTMLElement>('.hero-portrait');
-  const img = hero.querySelector<HTMLElement>('[data-parallax-img]');
   const title = hero.querySelector<HTMLElement>('.hero-title');
   const intro = hero.querySelector<HTMLElement>('[data-hero-intro]');
   const foot = hero.querySelector<HTMLElement>('.hero-foot');
@@ -141,8 +140,6 @@ function heroParallax(ease: string) {
       scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.6 },
     })
     .to(title, { yPercent: -18, ease: 'none' }, 0)
-    .to(img, { yPercent: -14, ease: 'none' }, 0)
-    .to(portrait, { yPercent: -6, ease: 'none' }, 0)
     .to([foot, cue], { autoAlpha: 0, ease: 'none' }, 0);
 }
 
